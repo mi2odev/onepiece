@@ -6,7 +6,7 @@ const Question = ({ question, onAnswer, currentQuestion, totalQuestions }) => {
   const progressPercentage = Math.max(0, Math.min(100, rawProgress * 100));
   
   return (
-  <div className="min-h-[100dvh] bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 p-4 sm:p-6 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[env(safe-area-inset-top)] flex flex-col relative overflow-hidden overflow-x-hidden">
+  <div className="h-screen min-h-[100dvh] bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 p-4 sm:p-6 pb-28 flex flex-col relative overflow-hidden overflow-x-hidden">
       <div className="absolute inset-0 pointer-events-none opacity-[0.07] select-none">
         <div className="absolute -top-10 -left-10 w-56 h-56 bg-gradient-to-br from-blue-500/40 to-purple-600/40 blur-3xl rounded-full" />
         <div className="absolute bottom-0 right-0 w-72 h-72 bg-gradient-to-tr from-pink-500/30 to-orange-400/30 blur-3xl rounded-full" />
@@ -41,29 +41,28 @@ const Question = ({ question, onAnswer, currentQuestion, totalQuestions }) => {
           </div>
 
           {/* Question Text */}
-          <h2 className="font-bold text-white text-center mb-10 md:mb-12 leading-relaxed tracking-wide drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] text-[clamp(1.25rem,3.5vw,2.5rem)] md:text-[clamp(1.75rem,2.2vw,2.75rem)]">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white text-center mb-10 md:mb-12 leading-relaxed tracking-wide drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
             {question.question}
           </h2>
           
           {/* Answers Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 flex-grow overflow-y-auto pr-1 pb-2 pl-1 md:pl-2 overscroll-contain scroll-py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 flex-grow overflow-y-auto pr-1 pb-2 pl-1 md:pl-2 overscroll-contain">
             {question.answers.map((answer, index) => (
               <button
                 key={index}
-                className="group relative bg-gradient-to-br from-slate-800/80 to-slate-700/70 hover:from-indigo-600/90 hover:to-purple-600/90 text-white p-5 sm:p-6 md:p-8 rounded-2xl border border-slate-600/30 hover:border-indigo-400/60 transition-all duration-300 ease-out backdrop-blur-sm will-change-transform overflow-hidden origin-center hover:shadow-[0_6px_24px_-4px_rgba(0,0,0,0.55)] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                className="group relative bg-gradient-to-br from-slate-800/80 to-slate-700/70 hover:from-indigo-600/90 hover:to-purple-600/90 text-white p-5 sm:p-6 md:p-8 rounded-2xl border border-slate-600/30 hover:border-indigo-400/60 transition-all duration-300 ease-out backdrop-blur-sm will-change-transform overflow-hidden origin-center hover:shadow-[0_6px_24px_-4px_rgba(0,0,0,0.55)]"
                 style={{ transform: 'translateZ(0)' }}
                 onClick={() => onAnswer(answer.scores)}
-                aria-label={`Answer ${String.fromCharCode(65 + index)}: ${answer.text}`}
               >
-                {/* Inline Letter + Text (original flexible layout) */}
-                <div className="relative z-10 flex items-start gap-4">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold text-white shadow-lg border border-white/10 flex-shrink-0">
-                    {String.fromCharCode(65 + index)}
+                  {/* Inline Letter + Text */}
+                  <div className="relative z-10 flex items-start gap-4">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold text-white shadow-lg border border-white/10 flex-shrink-0">
+                      {String.fromCharCode(65 + index)}
+                    </div>
+                    <p className="text-base sm:text-lg md:text-xl font-medium leading-relaxed group-hover:text-white transition-colors duration-300 tracking-wide text-left">
+                      {answer.text}
+                    </p>
                   </div>
-                  <p className="text-base sm:text-lg md:text-xl font-medium leading-relaxed group-hover:text-white transition-colors duration-300 tracking-wide text-left">
-                    {answer.text}
-                  </p>
-                </div>
                 
                 {/* Hover Effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/15 via-indigo-500/15 to-purple-500/15 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -98,7 +97,7 @@ const Question = ({ question, onAnswer, currentQuestion, totalQuestions }) => {
         </div>
 
         {/* Spacer for fixed footer safety */}
-  <div className="h-2 md:h-4" />
+  <div className="h-4" />
 
       </div>
     </div>

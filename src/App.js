@@ -66,67 +66,16 @@ function App() {
 
   if (!isStarted) {
     return (
-      <div className="min-h-[100dvh] w-full bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex flex-col relative overflow-hidden pb-16">
-        {/* Decorative emoji field (professional layout) */}
-        <div className="pointer-events-none absolute inset-0 z-0 select-none [mask-image:radial-gradient(circle_at_center,white,transparent_85%)]">
-          {/* Desktop / tablet freeform positions */}
-          <div className="hidden sm:block">
-            {/* Soft gradient overlays for depth */}
-            <div className="absolute right-0 top-0 w-96 h-96 bg-gradient-to-bl from-orange-500/15 via-pink-500/5 to-transparent blur-3xl" />
-            <div className="absolute left-0 bottom-0 w-[26rem] h-[26rem] bg-gradient-to-tr from-blue-500/10 via-indigo-500/5 to-transparent blur-3xl" />
-            {[
-              {e:'🏴‍☠️', x:'82%', y:'8%', s:'text-5xl', a:'animate-float-slow', d:'0s'},
-              {e:'⚔️',    x:'88%', y:'26%', s:'text-4xl', a:'animate-drift', d:'0.8s'},
-              {e:'🍖',    x:'78%', y:'38%', s:'text-5xl', a:'animate-float-slower', d:'1.3s'},
-              {e:'💰',    x:'85%', y:'54%', s:'text-4xl', a:'animate-sway', d:'2.1s'},
-              {e:'🧭',    x:'74%', y:'64%', s:'text-4xl', a:'animate-bob-rotate', d:'2.8s'},
-              {e:'�️',    x:'88%', y:'72%', s:'text-4xl', a:'animate-sway', d:'3.4s'},
-              {e:'⚓',     x:'80%', y:'84%', s:'text-4xl', a:'animate-float-slow', d:'4.1s'},
-              {e:'🍊',    x:'90%', y:'50%', s:'text-3xl', a:'animate-float-slow', d:'1.9s'},
-              {e:'💀',    x:'70%', y:'20%', s:'text-4xl', a:'animate-drift', d:'0.5s'}
-            ].map((it,i)=>(
-              <span
-                key={i}
-                className={`${it.s} ${it.a} pirate-glow absolute opacity-55 hover:opacity-85 transition-opacity duration-700 drop-shadow-[0_0_14px_rgba(255,200,120,0.35)]`}
-                style={{ left: it.x, top: it.y, animationDelay: it.d, animationDuration: i % 2 ? '12s':'10s' }}
-              >{it.e}</span>
-            ))}
-            {/* Left balanced cluster (mirrors right density) */}
-            {[
-              {e:'�', x:'10%', y:'10%', s:'text-4xl', a:'animate-drift', d:'0.4s'},
-              {e:'�🗺️', x:'7%',  y:'22%', s:'text-4xl', a:'animate-sway', d:'0.9s'},
-              {e:'⚓',  x:'12%', y:'34%', s:'text-5xl', a:'animate-float-slow', d:'1.3s'},
-              {e:'🍖', x:'6%',  y:'48%', s:'text-5xl', a:'animate-float-slower', d:'1.9s'},
-              {e:'💰', x:'14%', y:'60%', s:'text-4xl', a:'animate-sway', d:'2.5s'},
-              {e:'🧭', x:'8%',  y:'74%', s:'text-4xl', a:'animate-bob-rotate', d:'3.1s'},
-              {e:'🍊', x:'16%', y:'82%', s:'text-4xl', a:'animate-float-slow', d:'3.7s'}
-            ].map((it,i)=>(
-              <span
-                key={`l-${i}`}
-                className={`${it.s} absolute pirate-glow ${it.a} opacity-55 hover:opacity-85 transition-opacity duration-700 drop-shadow-[0_0_14px_rgba(255,200,120,0.32)]`}
-                style={{ left:it.x, top:it.y, animationDelay:it.d, animationDuration: i %2 ? '12.5s':'10.5s' }}
-              >{it.e}</span>
-            ))}
-          </div>
-          {/* Mobile concise arc */}
-          <div className="sm:hidden">
-            <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-blue-900/25 via-transparent to-transparent" />
-            {['🏴‍☠️','⚔️','🍖','💰','🧭','🍊'].map((e,i)=>(
-              <span
-                key={i}
-                className="absolute text-4xl pirate-glow animate-float-slow opacity-65"
-                style={{
-                  left: `${60 + Math.sin(i/5*Math.PI)*18}%`,
-                  top: `${18 + i*9}%`,
-                  animationDelay: `${i*0.5}s`,
-                  animationDuration: i % 2 ? '8.5s' : '7.5s'
-                }}
-              >{e}</span>
+      <div className="min-h-screen w-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex flex-col relative overflow-hidden pb-16">
+        {/* Simple right vertical emoji column (rollback) */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden select-none opacity-[0.3]">
+          <div className="absolute top-8 right-8 flex flex-col items-center gap-8">
+            {['🏴‍☠️','⚓','️','⚔️','🍖','💰','🧭','🍊','�'].map((e,i)=>(
+              <span key={i} className="text-4xl pirate-glow animate-float-slow" style={{ animationDelay:`${i*0.6}s`, animationDuration: i %2 ? '10s':'8s' }}>{e}</span>
             ))}
           </div>
         </div>
-        {/* Elevate main content above decorative layer */}
-        <div className="relative z-10 flex-1 flex items-center justify-center px-4 pb-24 md:pb-28">
+        <div className="flex-1 flex items-center justify-center px-4 pb-24 md:pb-28">
   {/* (Main content container replaced above with z-10 wrapper) */}
           <div className="text-center max-w-4xl mx-auto flex flex-col overflow-visible">
             {/* Logo with enhanced multi-layer glow */}
