@@ -23,6 +23,8 @@ module.exports = {
       fontFamily: {
         pirate: ['Creepster', 'cursive'],
         adventure: ['Bungee', 'cursive'],
+        // Add Arabic-friendly UI font (Tajawal) with fallback to Poppins for Latin
+        ui: ['Tajawal', 'Poppins', 'system-ui', 'sans-serif'],
       },
     },
   },

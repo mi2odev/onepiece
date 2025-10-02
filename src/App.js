@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Question from './components/Question';
 import Result from './components/Result';
 import Footer from './components/Footer';
-import { questions } from './data/questions';
+import { getQuestions, getUI, isArabicQuestionsComplete } from './data/i18n';
 
 function App() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [lang, setLang] = useState('en');
   const [scores, setScores] = useState({
     luffy: 0,
     zoro: 0,
@@ -72,18 +73,41 @@ function App() {
     { e: '🌊',          top: '87%', left: '84%', size: '2.1rem', anim: 'animate-float-slower', delay: '1.3s', opacity: 0.27 }
   ];
 
+  const ui = getUI(lang);
+  const questions = getQuestions(lang);
+
+  // Localize document title (must be before conditional returns)
+  useEffect(() => {
+    document.title = lang === 'ar' ? 'اختبار شخصية ون بيس' : 'One Piece Personality Test';
+  }, [lang]);
+
   if (showResult) {
     return (
       <>
-        <Result scores={scores} onRestart={restartQuiz} />
+        <Result scores={scores} onRestart={restartQuiz} lang={lang} />
         <Footer />
       </>
     );
   }
 
+  const showPartialNotice = lang === 'ar' && !isArabicQuestionsComplete();
+
+  const toggleLang = () => {
+    setLang(prev => (prev === 'en' ? 'ar' : 'en'));
+    // Reset quiz when switching languages to avoid index mismatch
+    setCurrentQuestionIndex(0);
+    setScores({
+      luffy: 0, zoro: 0, nami: 0, sanji: 0, usopp: 0, chopper: 0, robin: 0, franky: 0, brook: 0, jinbe: 0
+    });
+    setShowResult(false);
+    setIsStarted(false);
+  };
+
+  const isRtl = lang === 'ar';
+
   if (!isStarted) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex flex-col relative overflow-x-hidden pb-16">
+      <div className={`min-h-screen w-full bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex flex-col relative overflow-x-hidden pb-16 ${isRtl ? 'font-[\'Poppins\'] rtl' : ''}`} dir={isRtl ? 'rtl' : 'ltr'}>
         {/* Professional balanced emoji decor */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden select-none">
           {professionalEmojis.map((it, i) => (
@@ -109,6 +133,15 @@ function App() {
         <div className="flex-1 flex items-center justify-center px-4 pb-24 md:pb-28 overflow-visible">
   {/* (Main content container replaced above with z-10 wrapper) */}
           <div className="text-center max-w-4xl mx-auto flex flex-col overflow-visible px-1 sm:px-2">
+            {/* Language Toggle */}
+            <div className={`flex ${isRtl ? 'justify-start' : 'justify-end'} w-full mb-4`}>
+              <button
+                onClick={toggleLang}
+                className="text-xs sm:text-sm bg-white/10 hover:bg-white/20 border border-white/20 text-blue-100 px-3 py-2 rounded-lg backdrop-blur-md transition-colors"
+              >
+                {lang === 'en' ? 'العربية' : 'English'}
+              </button>
+            </div>
             {/* Logo with enhanced multi-layer glow */}
               <div className="flex justify-center mb-5 md:mb-8 relative">
                 <div className="relative isolate">
@@ -144,11 +177,16 @@ function App() {
 
             {/* Title / Subtitle */}
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 md:mb-6 tracking-wide">
-              Personality Test
+              {ui.personalityTest}
             </h2>
-            <p className="text-xl md:text-2xl text-blue-200 mb-6 md:mb-10 leading-relaxed">
-              Discover which <span className="text-yellow-400 font-semibold">Straw Hat Pirate</span> matches your personality!
+            <p className="text-xl md:text-2xl text-blue-200 mb-6 md:mb-4 leading-relaxed">
+              {ui.discoverLine.replace('Straw Hat Pirate', isRtl ? 'قرصان قبعة القش' : 'Straw Hat Pirate')}
             </p>
+            {showPartialNotice && (
+              <div className="mb-6 md:mb-8 bg-yellow-500/10 border border-yellow-400/30 text-yellow-200 text-xs md:text-sm px-4 py-3 rounded-xl backdrop-blur-sm">
+                {ui.partialNotice}
+              </div>
+            )}
 
             {/* Start Button (final fix: no clipping, simplified layers) */}
             <button
@@ -187,7 +225,7 @@ function App() {
                 }}
               />
               <span className="relative z-10 flex items-center tracking-wide drop-shadow-sm">
-                Start Your Adventure
+                {ui.startAdventure}
                 <svg className="ml-3 w-6 h-6 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -195,28 +233,22 @@ function App() {
             </button>
 
             <p className="text-blue-300 mt-6 md:mt-10 text-lg">
-              Join Luffy's crew and find your place on the Thousand Sunny! ⚓
+              {ui.joinCrew}
             </p>
 
             {/* Detailed Feature / Lore Section */}
             <div className="mt-6 md:mt-10 grid md:grid-cols-3 gap-5 md:gap-6 text-left flex-shrink-0">
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm hover:bg-white/10 transition-colors duration-300">
-                <h3 className="text-yellow-300 font-semibold mb-2 tracking-wide text-sm">HOW IT WORKS</h3>
-                <p className="text-blue-200 text-sm leading-relaxed">
-                  Answer 32 scenario-based questions crafted to map your choices to the core traits of each Straw Hat pirate.
-                </p>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm hover:bg-white/10 transition-colors duration-300 text-start">
+                <h3 className="text-yellow-300 font-semibold mb-2 tracking-wide text-sm">{ui.howItWorks}</h3>
+                <p className="text-blue-200 text-sm leading-relaxed">{ui.howItWorksDesc}</p>
               </div>
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm hover:bg-white/10 transition-colors duration-300">
-                <h3 className="text-orange-300 font-semibold mb-2 tracking-wide text-sm">WHAT YOU GET</h3>
-                <p className="text-blue-200 text-sm leading-relaxed">
-                  A primary match, full ranking of all crew members, personality trait breakdown, and a dynamic poster view.
-                </p>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm hover:bg-white/10 transition-colors duration-300 text-start">
+                <h3 className="text-orange-300 font-semibold mb-2 tracking-wide text-sm">{ui.whatYouGet}</h3>
+                <p className="text-blue-200 text-sm leading-relaxed">{ui.whatYouGetDesc}</p>
               </div>
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm hover:bg-white/10 transition-colors duration-300">
-                <h3 className="text-red-300 font-semibold mb-2 tracking-wide text-sm">ACCURACY FOCUS</h3>
-                <p className="text-blue-200 text-sm leading-relaxed">
-                  Balanced scoring weights prevent ties and ensure each answer pushes you toward the most authentic match.
-                </p>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm hover:bg-white/10 transition-colors duration-300 text-start">
+                <h3 className="text-red-300 font-semibold mb-2 tracking-wide text-sm">{ui.accuracyFocus}</h3>
+                <p className="text-blue-200 text-sm leading-relaxed">{ui.accuracyFocusDesc}</p>
               </div>
             </div>
 
@@ -234,15 +266,15 @@ function App() {
             <div className="mt-4 md:mt-6 flex flex-col sm:flex-row items-center justify-center gap-5 md:gap-6 text-[10px] sm:text-xs tracking-wide text-blue-300/70 flex-shrink-0">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
-                <span>32 QUESTIONS</span>
+                <span>{ui.statsQuestions}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" style={{ animationDelay: '0.6s' }} />
-                <span>10 CHARACTERS</span>
+                <span>{ui.statsCharacters}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" style={{ animationDelay: '1.2s' }} />
-                <span>UNLIMITED REPLAYS</span>
+                <span>{ui.statsReplays}</span>
               </div>
             </div>
             {/* Subtle spacer (reduced) */}
@@ -261,7 +293,15 @@ function App() {
         onAnswer={handleAnswer}
         currentQuestion={currentQuestionIndex + 1}
         totalQuestions={questions.length}
+        lang={lang}
       />
+      {showPartialNotice && (
+        <div className="max-w-xl mx-auto mt-4 px-4">
+          <div className="bg-yellow-500/10 border border-yellow-400/30 text-yellow-200 text-[11px] md:text-xs px-3 py-2 rounded-lg text-center">
+            {getUI(lang).partialNoticeShort}
+          </div>
+        </div>
+      )}
       <Footer />
     </>
   );

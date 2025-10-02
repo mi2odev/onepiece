@@ -1,14 +1,19 @@
 import React from 'react';
 
-const Question = ({ question, onAnswer, currentQuestion, totalQuestions }) => {
+import { getUI } from '../data/i18n';
+
+const Question = ({ question, onAnswer, currentQuestion, totalQuestions, lang = 'en' }) => {
   // Ensure first question shows 0% progress visually
   const rawProgress = (currentQuestion - 1) / totalQuestions;
   const progressPercentage = Math.max(0, Math.min(100, rawProgress * 100));
+  const ui = getUI(lang);
+  const isRtl = lang === 'ar';
   
   return (
   <div
-    className="min-h-[100dvh] bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 px-3 xs:px-4 sm:px-6 pt-4 sm:pt-6 pb-28 flex flex-col relative overflow-x-hidden"
+    className={`min-h-[100dvh] bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 px-3 xs:px-4 sm:px-6 pt-4 sm:pt-6 pb-28 flex flex-col relative overflow-x-hidden ${isRtl ? 'rtl' : ''}`}
     style={{ paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 6.5rem)' }}
+    dir={isRtl ? 'rtl' : 'ltr'}
   >
       <div className="absolute inset-0 pointer-events-none opacity-[0.07] select-none">
         <div className="absolute -top-10 -left-10 w-56 h-56 bg-gradient-to-br from-blue-500/40 to-purple-600/40 blur-3xl rounded-full" />
@@ -16,7 +21,7 @@ const Question = ({ question, onAnswer, currentQuestion, totalQuestions }) => {
       </div>
   <div className="w-full max-w-5xl mx-auto flex flex-col flex-1 overflow-visible min-h-0">
         {/* Progress Section */}
-  <div className="mb-3 sm:mb-4 md:mb-6 sticky top-0 z-30 pt-1 pb-2 backdrop-blur-sm bg-slate-950/40 rounded-xl border border-white/5 shadow-[0_4px_18px_-6px_rgba(0,0,0,0.55)]">
+  <div className="mb-3 sm:mb-4 md:mb-6 sticky top-0 z-30 pt-1 pb-2 backdrop-blur-sm bg-slate-950/40 rounded-xl border border-white/5 shadow-[0_4px_18px_-6px_rgba(0,0,0,0.55)]" dir={isRtl ? 'ltr' : 'ltr'}>
           <div className="flex items-center justify-between mb-2 sm:mb-3 text-[10px] xs:text-xs sm:text-sm font-medium tracking-wide text-blue-200/80 px-2 sm:px-0">
             <span className="uppercase">Question {currentQuestion} / {totalQuestions}</span>
             <span>{Math.round(progressPercentage)}%</span>
@@ -39,7 +44,7 @@ const Question = ({ question, onAnswer, currentQuestion, totalQuestions }) => {
           {/* Question Number Badge */}
           <div className="flex justify-center mb-5 sm:mb-6">
             <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white px-7 py-2 rounded-full text-xs sm:text-sm font-semibold tracking-wider shadow-lg border border-white/10">
-              QUESTION {currentQuestion}
+              {ui.questionUpper} {currentQuestion}
             </div>
           </div>
 
@@ -81,7 +86,7 @@ const Question = ({ question, onAnswer, currentQuestion, totalQuestions }) => {
         </div>
 
         {/* Progress Pills (original bottom position, with extra bottom space so footer doesn't cover) */}
-  <div className="flex justify-center mt-5 md:mt-6 space-x-1.5 md:space-x-2 relative z-20 px-2 flex-wrap max-w-[90%] mx-auto">
+  <div className="flex justify-center mt-5 md:mt-6 space-x-1.5 md:space-x-2 relative z-20 px-2 flex-wrap max-w-[90%] mx-auto" dir={isRtl ? 'ltr' : 'ltr'}>
           {Array.from({ length: totalQuestions }, (_, i) => {
             const isAnswered = i < currentQuestion - 1;
             const isCurrent = i === currentQuestion - 1;

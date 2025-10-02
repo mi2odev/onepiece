@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { characters } from '../data/questions';
-
-const Result = ({ scores = {}, onRestart }) => {
+// Use i18n helpers instead of static English characters
+import { getCharacters, getUI } from '../data/i18n';
+const Result = ({ scores = {}, onRestart, lang = 'en' }) => {
   const [selectedImage, setSelectedImage] = useState(null);
+
+  // i18n resources
+  const ui = getUI(lang);
+  const characters = getCharacters(lang);
 
   // Safely determine top character
   const scoreKeys = Object.keys(scores);
@@ -33,8 +37,10 @@ const Result = ({ scores = {}, onRestart }) => {
     setSelectedImage({ src: imageSrc, name, description, color, traits });
   const closeImageModal = () => setSelectedImage(null);
 
+  const isRtl = lang === 'ar';
+
   return (
-  <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 relative pb-24">
+  <div dir={isRtl ? 'rtl' : 'ltr'} className={`min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 relative pb-24 ${isRtl ? 'font-[system-ui]' : ''}`}> {/* system font helps Arabic legibility */}
       {/* Hero */}
   <div className="relative flex-shrink-0 overflow-visible">
         <div
@@ -64,7 +70,7 @@ const Result = ({ scores = {}, onRestart }) => {
             </div>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
-            Your One Piece Character is
+            {ui.yourCharacterIs}
           </h1>
           <h2
             className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r bg-clip-text text-transparent"
@@ -109,7 +115,7 @@ const Result = ({ scores = {}, onRestart }) => {
                 >
                   {sortedPercentages[0].percentage}%
                 </span>
-                <span className="text-xs md:text-sm text-blue-200">Match</span>
+                <span className="text-xs md:text-sm text-blue-200">{ui.match}</span>
               </div>
             </div>
           </div>
@@ -143,7 +149,7 @@ const Result = ({ scores = {}, onRestart }) => {
                   <span>{character.emoji}</span>
                 </div>
                 <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm md:text-base">View Wanted Poster</span>
+                  <span className="text-white font-semibold text-sm md:text-base">{ui.viewPoster}</span>
                 </div>
               </div>
             </div>
@@ -156,7 +162,7 @@ const Result = ({ scores = {}, onRestart }) => {
                 </p>
               </div>
               <div>
-                <h4 className="text-xl font-semibold text-white mb-4">Your Personality Traits</h4>
+                <h4 className="text-xl font-semibold text-white mb-4">{ui.personalityTraits}</h4>
                 <div className="flex flex-wrap gap-3">
                   {character.traits.map((trait, i) => (
                     <span
@@ -181,8 +187,8 @@ const Result = ({ scores = {}, onRestart }) => {
   {/* Character Grid (scrollable) */}
   <div className="flex-1 flex flex-col overflow-visible">
         <div className="container mx-auto px-4 pt-2 pb-1 flex-shrink-0 text-center relative z-10">
-          <h3 className="text-2xl md:text-3xl font-bold text-white mb-1">Complete Personality Analysis</h3>
-          <p className="text-blue-200 text-xs md:text-sm">See how you match with all One Piece characters</p>
+          <h3 className="text-2xl md:text-3xl font-bold text-white mb-1">{ui.completeAnalysis}</h3>
+          <p className="text-blue-200 text-xs md:text-sm">{ui.seeHowYouMatch}</p>
         </div>
         <div className="flex-1 overflow-y-auto pt-4 pb-8">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-6xl mx-auto px-4">
@@ -194,8 +200,8 @@ const Result = ({ scores = {}, onRestart }) => {
                 onClick={() => openImageModal(char.image, char.name, characters[char.key].description, characters[char.key].color, characters[char.key].traits)}
               >
                 {index === 0 && (
-                  <div className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded-full">
-                    Best Match
+                  <div className={`absolute -top-2 ${isRtl ? '-left-2' : '-right-2'} bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded-full`}>
+                    {ui.bestMatch}
                   </div>
                 )}
                 <div className="text-center space-y-3">
@@ -243,26 +249,28 @@ const Result = ({ scores = {}, onRestart }) => {
             className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 md:py-4 px-6 md:px-8 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 text-sm md:text-base"
           >
             <span>🔄</span>
-            <span>Take Quiz Again</span>
+            <span>{ui.takeAgain}</span>
           </button>
           <button
             onClick={() => {
-              const text = `I got ${character.name} in the One Piece Personality Test! ${character.description}`;
+              const text = lang === 'ar'
+                ? `حصلت على ${character.name} في اختبار ون بيس للشخصية! ${character.description}`
+                : `I got ${character.name} in the One Piece Personality Test! ${character.description}`;
               if (navigator.share) {
                 navigator.share({
-                  title: 'One Piece Personality Test Result',
+                  title: lang === 'ar' ? 'نتيجة اختبار ون بيس للشخصية' : 'One Piece Personality Test Result',
                   text,
                   url: window.location.href
                 });
               } else {
                 navigator.clipboard.writeText(text + ` - ${window.location.href}`);
-                alert('Result copied to clipboard!');
+                alert(lang === 'ar' ? 'تم نسخ النتيجة إلى الحافظة!' : 'Result copied to clipboard!');
               }
             }}
             className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3 md:py-4 px-6 md:px-8 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 text-sm md:text-base"
           >
             <span>📤</span>
-            <span>Share Result</span>
+            <span>{ui.shareResult}</span>
           </button>
         </div>
       </div>
