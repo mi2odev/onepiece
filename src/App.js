@@ -55,6 +55,23 @@ function App() {
 
   const startQuiz = () => setIsStarted(true);
 
+  // Professional subtle emoji layout (fixed deliberately balanced positions)
+  const professionalEmojis = [
+    // Left vertical arc
+    { e: '🏴\u200d☠️', top: '6%', left: '5%',  size: '2.4rem', anim: 'animate-float-slow', delay: '0s',   opacity: 0.38 },
+    { e: '⚓',          top: '15%', left: '8%',  size: '2.1rem', anim: 'animate-float-slower', delay: '1.2s', opacity: 0.34 },
+    { e: '🧭',          top: '24%', left: '6%',  size: '1.9rem', anim: 'animate-sway', delay: '2.1s', opacity: 0.33 },
+    // Lower left accent
+    { e: '💰',          top: '74%', left: '7%',  size: '2.2rem', anim: 'animate-bob-rotate', delay: '1.4s', opacity: 0.30 },
+    // Right side gentle curve
+    { e: '⚔️',          top: '9%',  left: '88%', size: '2.3rem', anim: 'animate-float-slow', delay: '0.5s', opacity: 0.37 },
+    { e: '💎',          top: '19%', left: '84%', size: '2.0rem', anim: 'animate-sway', delay: '1.7s', opacity: 0.32 },
+    { e: '🍊',          top: '46%', left: '90%', size: '1.95rem', anim: 'animate-float-slower', delay: '2.4s', opacity: 0.30 },
+    { e: '🗺️',          top: '70%', left: '86%', size: '2.05rem', anim: 'animate-drift', delay: '0.9s', opacity: 0.30 },
+    { e: '🪙',          top: '81%', left: '92%', size: '1.8rem', anim: 'animate-bob-rotate', delay: '2.9s', opacity: 0.28 },
+    { e: '🌊',          top: '87%', left: '84%', size: '2.1rem', anim: 'animate-float-slower', delay: '1.3s', opacity: 0.27 }
+  ];
+
   if (showResult) {
     return (
       <>
@@ -66,18 +83,32 @@ function App() {
 
   if (!isStarted) {
     return (
-      <div className="min-h-screen w-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex flex-col relative overflow-hidden pb-16">
-        {/* Simple right vertical emoji column (rollback) */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden select-none opacity-[0.3]">
-          <div className="absolute top-8 right-8 flex flex-col items-center gap-8">
-            {['🏴‍☠️','⚓','️','⚔️','🍖','💰','🧭','🍊','�'].map((e,i)=>(
-              <span key={i} className="text-4xl pirate-glow animate-float-slow" style={{ animationDelay:`${i*0.6}s`, animationDuration: i %2 ? '10s':'8s' }}>{e}</span>
-            ))}
-          </div>
+      <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex flex-col relative overflow-x-hidden pb-16">
+        {/* Professional balanced emoji decor */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden select-none">
+          {professionalEmojis.map((it, i) => (
+            <span
+              key={i}
+              aria-hidden="true"
+              className={`absolute ${it.anim} pirate-glow mix-blend-screen`}
+              style={{
+                top: it.top,
+                left: it.left,
+                fontSize: it.size,
+                animationDelay: it.delay,
+                animationDuration: it.anim.includes('slower') ? '10s' : '8s',
+                opacity: it.opacity,
+                filter: 'drop-shadow(0 0 5px rgba(255,190,120,0.25))'
+              }}
+            >
+              {it.e}
+            </span>
+          ))}
+          <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at center, rgba(10,15,35,0) 62%, rgba(10,15,35,0.55))' }} />
         </div>
-        <div className="flex-1 flex items-center justify-center px-4 pb-24 md:pb-28">
+        <div className="flex-1 flex items-center justify-center px-4 pb-24 md:pb-28 overflow-visible">
   {/* (Main content container replaced above with z-10 wrapper) */}
-          <div className="text-center max-w-4xl mx-auto flex flex-col overflow-visible">
+          <div className="text-center max-w-4xl mx-auto flex flex-col overflow-visible px-1 sm:px-2">
             {/* Logo with enhanced multi-layer glow */}
               <div className="flex justify-center mb-5 md:mb-8 relative">
                 <div className="relative isolate">
