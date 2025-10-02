@@ -15,8 +15,8 @@ const Result = ({ scores = {}, onRestart, lang = 'en' }) => {
     : Object.keys(characters)[0];
   const character = characters[topCharacterKey];
 
-  // Calculate percentages for all characters
-  const totalPossibleScore = 32 * 3; // 32 questions, max 3 points each
+  // Original raw scoring (unweighted). Each percentage is relative to global max (24 questions * 3).
+  const totalPossibleScore = 24 * 3;
   const characterPercentages = Object.entries(characters).map(([key, char]) => {
     const raw = scores[key] || 0;
     return {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Question from './components/Question';
 import Result from './components/Result';
 import Footer from './components/Footer';
-import { getQuestions, getUI, isArabicQuestionsComplete } from './data/i18n';
+import { getQuestions, getUI } from './data/i18n';
 
 function App() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -21,19 +21,47 @@ function App() {
   });
   const [showResult, setShowResult] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
+  // Keep a history of chosen answers' score objects so we can undo (back) safely
+  const [answersHistory, setAnswersHistory] = useState([]);
 
   const handleAnswer = (answerScores) => {
+    // Apply the selected answer's scores
     const newScores = { ...scores };
     Object.keys(answerScores).forEach(character => {
       newScores[character] += answerScores[character];
     });
     setScores(newScores);
 
+    // Push this answer onto history for potential rollback
+    setAnswersHistory(prev => {
+      // After going back, prev length equals currentQuestionIndex, so simple append is safe
+      return [...prev, answerScores];
+    });
+
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       setShowResult(true);
     }
+  };
+
+  const handleBack = () => {
+    if (currentQuestionIndex === 0 || answersHistory.length === 0) return;
+    // Previous question index (we are currently viewing question N, want to revert to N-1)
+    const lastAnswerScores = answersHistory[answersHistory.length - 1];
+    // Subtract those scores
+    const revertedScores = { ...scores };
+    Object.keys(lastAnswerScores).forEach(character => {
+      revertedScores[character] -= lastAnswerScores[character];
+      if (revertedScores[character] < 0) revertedScores[character] = 0; // safety guard
+    });
+    setScores(revertedScores);
+    // Pop history entry
+    setAnswersHistory(prev => prev.slice(0, prev.length - 1));
+    // Move pointer back one question
+    setCurrentQuestionIndex(currentQuestionIndex - 1);
+    // Ensure result screen is hidden if we were at the end
+    if (showResult) setShowResult(false);
   };
 
   const restartQuiz = () => {
@@ -52,6 +80,7 @@ function App() {
     });
     setShowResult(false);
     setIsStarted(false);
+    setAnswersHistory([]);
   };
 
   const startQuiz = () => setIsStarted(true);
@@ -90,7 +119,7 @@ function App() {
     );
   }
 
-  const showPartialNotice = lang === 'ar' && !isArabicQuestionsComplete();
+  // Arabic set now complete; partial notice removed
 
   const toggleLang = () => {
     setLang(prev => (prev === 'en' ? 'ar' : 'en'));
@@ -101,6 +130,7 @@ function App() {
     });
     setShowResult(false);
     setIsStarted(false);
+    setAnswersHistory([]);
   };
 
   const isRtl = lang === 'ar';
@@ -182,11 +212,7 @@ function App() {
             <p className="text-xl md:text-2xl text-blue-200 mb-6 md:mb-4 leading-relaxed">
               {ui.discoverLine.replace('Straw Hat Pirate', isRtl ? 'قرصان قبعة القش' : 'Straw Hat Pirate')}
             </p>
-            {showPartialNotice && (
-              <div className="mb-6 md:mb-8 bg-yellow-500/10 border border-yellow-400/30 text-yellow-200 text-xs md:text-sm px-4 py-3 rounded-xl backdrop-blur-sm">
-                {ui.partialNotice}
-              </div>
-            )}
+            {/* Removed partial translation notice */}
 
             {/* Start Button (final fix: no clipping, simplified layers) */}
             <button
@@ -291,17 +317,12 @@ function App() {
       <Question
         question={questions[currentQuestionIndex]}
         onAnswer={handleAnswer}
+        onBack={handleBack}
         currentQuestion={currentQuestionIndex + 1}
         totalQuestions={questions.length}
         lang={lang}
       />
-      {showPartialNotice && (
-        <div className="max-w-xl mx-auto mt-4 px-4">
-          <div className="bg-yellow-500/10 border border-yellow-400/30 text-yellow-200 text-[11px] md:text-xs px-3 py-2 rounded-lg text-center">
-            {getUI(lang).partialNoticeShort}
-          </div>
-        </div>
-      )}
+      {/* Removed partial translation notice */}
       <Footer />
     </>
   );

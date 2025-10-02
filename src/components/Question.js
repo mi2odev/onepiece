@@ -2,7 +2,7 @@ import React from 'react';
 
 import { getUI } from '../data/i18n';
 
-const Question = ({ question, onAnswer, currentQuestion, totalQuestions, lang = 'en' }) => {
+const Question = ({ question, onAnswer, onBack, currentQuestion, totalQuestions, lang = 'en' }) => {
   // Ensure first question shows 0% progress visually
   const rawProgress = (currentQuestion - 1) / totalQuestions;
   const progressPercentage = Math.max(0, Math.min(100, rawProgress * 100));
@@ -20,11 +20,26 @@ const Question = ({ question, onAnswer, currentQuestion, totalQuestions, lang = 
         <div className="absolute bottom-0 right-0 w-72 h-72 bg-gradient-to-tr from-pink-500/30 to-orange-400/30 blur-3xl rounded-full" />
       </div>
   <div className="w-full max-w-5xl mx-auto flex flex-col flex-1 overflow-visible min-h-0">
-        {/* Progress Section */}
+        {/* Progress Section + Back Button */}
   <div className="mb-3 sm:mb-4 md:mb-6 sticky top-0 z-30 pt-1 pb-2 backdrop-blur-sm bg-slate-950/40 rounded-xl border border-white/5 shadow-[0_4px_18px_-6px_rgba(0,0,0,0.55)]" dir={isRtl ? 'ltr' : 'ltr'}>
-          <div className="flex items-center justify-between mb-2 sm:mb-3 text-[10px] xs:text-xs sm:text-sm font-medium tracking-wide text-blue-200/80 px-2 sm:px-0">
-            <span className="uppercase">Question {currentQuestion} / {totalQuestions}</span>
-            <span>{Math.round(progressPercentage)}%</span>
+          <div className="flex items-center justify-between mb-2 sm:mb-3 text-[10px] xs:text-xs sm:text-sm font-medium tracking-wide text-blue-200/80 px-2 sm:px-3 gap-2">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => currentQuestion > 1 && onBack && onBack()}
+                disabled={currentQuestion === 1}
+                className={`group relative inline-flex items-center justify-center rounded-md border px-2.5 py-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-[10px] xs:text-xs sm:text-sm font-semibold tracking-wide select-none
+                  ${currentQuestion === 1
+                    ? 'border-slate-600/40 bg-slate-700/40 text-slate-300'
+                    : 'border-slate-500/40 bg-slate-700/60 hover:bg-indigo-600/70 hover:border-indigo-400/60 text-blue-100 hover:text-white'}
+                `}
+                aria-label={ui.back}
+              >
+                {isRtl ? '⮜' : '⮜'} <span className={`${isRtl ? 'mr-1' : 'ml-1'}`}>{ui.back}</span>
+              </button>
+              <span className="uppercase whitespace-nowrap">Question {currentQuestion} / {totalQuestions}</span>
+            </div>
+            <span className="whitespace-nowrap">{Math.round(progressPercentage)}%</span>
           </div>
           <div className="w-full h-3 sm:h-4 rounded-full bg-slate-700/40 border border-slate-600/30 shadow-inner overflow-hidden mx-auto">
             <div
