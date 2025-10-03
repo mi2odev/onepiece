@@ -163,8 +163,18 @@ function App() {
         <div className="flex-1 flex items-center justify-center px-4 pb-24 md:pb-28 overflow-visible">
   {/* (Main content container replaced above with z-10 wrapper) */}
           <div className="text-center max-w-4xl mx-auto flex flex-col overflow-visible px-1 sm:px-2">
-            {/* Language Toggle */}
-            <div className={`flex ${isRtl ? 'justify-start' : 'justify-end'} w-full mb-4`}>
+            {/* Top Controls: JoJo Test + Language Toggle */}
+            <div className="flex justify-end w-full mb-4 gap-3" dir="ltr">
+              {/* JoJo Test Button - always in same physical position */}
+              <a
+                href="https://jojomi2o.netlify.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs sm:text-sm bg-purple-600/80 hover:bg-purple-500/90 border border-purple-400/40 hover:border-purple-300/60 text-white px-3 py-2 rounded-lg backdrop-blur-md transition-all duration-300 font-medium shadow-lg hover:shadow-purple-500/25"
+              >
+                {lang === 'en' ? 'JoJo Test' : 'اختبار جوجو'}
+              </a>
+              {/* Language Toggle - always in same physical position */}
               <button
                 onClick={toggleLang}
                 className="text-xs sm:text-sm bg-white/10 hover:bg-white/20 border border-white/20 text-blue-100 px-3 py-2 rounded-lg backdrop-blur-md transition-colors"
