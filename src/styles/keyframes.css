@@ -1,0 +1,122 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Atmosphere & micro-animation keyframes (CSS-driven, compositor-friendly).
+   These power the "living world" background layers. Framer Motion handles
+   orchestrated UI motion; these are the always-on, cheap loops.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Slow ocean gradient shimmer (background-position only) */
+@keyframes ocean-shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Caustic light bands sliding over the sea surface */
+@keyframes caustic-drift {
+  0% { transform: translate3d(-4%, 0, 0) scale(1.1); opacity: 0.35; }
+  50% { transform: translate3d(4%, 1.5%, 0) scale(1.18); opacity: 0.55; }
+  100% { transform: translate3d(-4%, 0, 0) scale(1.1); opacity: 0.35; }
+}
+
+/* Big soft fog bank sliding horizontally */
+@keyframes fog-drift {
+  0% { transform: translate3d(-12%, 0, 0); }
+  100% { transform: translate3d(12%, 0, 0); }
+}
+
+/* God-ray sweep: slow rotate + breathe */
+@keyframes ray-sweep {
+  0% { transform: rotate(-6deg); opacity: 0.35; }
+  50% { transform: rotate(6deg); opacity: 0.65; }
+  100% { transform: rotate(-6deg); opacity: 0.35; }
+}
+
+/* Star / dust twinkle */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+/* Gentle vertical float */
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+@keyframes float-slow {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-18px); }
+  100% { transform: translateY(0); }
+}
+
+/* Diagonal drift + tiny rotation (floating symbols) */
+@keyframes drift-diagonal {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(26px, -18px) rotate(6deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* Horizontal sway */
+@keyframes sway-x {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(20px); }
+  100% { transform: translateX(0); }
+}
+
+/* Bob + rotate (treasure motes) */
+@keyframes bob-rotate {
+  0% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-13px) rotate(4deg); }
+  100% { transform: translateY(0) rotate(-4deg); }
+}
+
+/* Slow spin (log pose ring) */
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+/* Metallic sheen sweep across gold surfaces */
+@keyframes gold-sheen {
+  0% { transform: translateX(-120%) skewX(-18deg); }
+  60%, 100% { transform: translateX(260%) skewX(-18deg); }
+}
+
+/* Pulsing glow halo */
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.06); }
+}
+
+/* Seagull gliding across the sky */
+@keyframes gull-glide {
+  0% { transform: translate(-10vw, 0) scaleX(1); }
+  50% { transform: translate(50vw, -3vh) scaleX(1); }
+  100% { transform: translate(110vw, 1vh) scaleX(1); }
+}
+
+/* Rising bubble (used by some decor; canvas handles the dense field) */
+@keyframes bubble-rise {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  12% { opacity: 0.8; }
+  100% { transform: translateY(-120px) scale(1.25); opacity: 0; }
+}
+
+/* ── Helper classes ───────────────────────────────────────────────────── */
+.animate-ocean-shimmer { animation: ocean-shimmer 18s ease-in-out infinite; }
+.animate-caustic { animation: caustic-drift 14s ease-in-out infinite; }
+.animate-fog { animation: fog-drift 34s ease-in-out infinite alternate; }
+.animate-ray { animation: ray-sweep 16s ease-in-out infinite; transform-origin: top center; }
+.animate-twinkle { animation: twinkle 4s ease-in-out infinite; }
+.animate-float-y { animation: float-y 6s ease-in-out infinite; }
+.animate-float-slow { animation: float-slow 7s ease-in-out infinite; }
+.animate-float-slower { animation: float-slow 10s ease-in-out infinite; }
+.animate-drift { animation: drift-diagonal 12s ease-in-out infinite; }
+.animate-sway { animation: sway-x 8s ease-in-out infinite; }
+.animate-bob-rotate { animation: bob-rotate 7s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 26s linear infinite; }
+.animate-glow-pulse { animation: glow-pulse 5s ease-in-out infinite; }
+.animate-gull { animation: gull-glide 26s linear infinite; }
+
+/* Glow text-shadow for emoji / icon decor */
+.pirate-glow {
+  text-shadow: 0 0 6px rgb(255 200 120 / 0.5), 0 0 16px rgb(255 120 40 / 0.35);
+}
