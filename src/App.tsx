@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Background } from './components/background/Background';
 import { Hero } from './components/hero/Hero';
 import { QuizFlow } from './components/quiz/QuizFlow';
+import { IntroSequence } from './components/intro/IntroSequence';
 import Footer from './components/Footer';
 
 // Result page (with recharts) is code-split — keeps the hero/quiz load light.
@@ -21,7 +22,23 @@ function AppInner() {
   const [scores, setScores] = useState<Scores>(emptyScores);
   const [index, setIndex] = useState(0);
   const [history, setHistory] = useState<AnswerScore[]>([]);
+  const [introDone, setIntroDone] = useState(() => {
+    try {
+      return sessionStorage.getItem('op-intro-seen') === '1';
+    } catch {
+      return false;
+    }
+  });
   const { play } = useSound();
+
+  const completeIntro = () => {
+    setIntroDone(true);
+    try {
+      sessionStorage.setItem('op-intro-seen', '1');
+    } catch {
+      /* ignore */
+    }
+  };
 
   const ui = getUI(lang);
   const isRtl = lang === 'ar';
@@ -119,6 +136,17 @@ function AppInner() {
       </div>
 
       <Footer />
+
+      <AnimatePresence>
+        {!introDone && (
+          <IntroSequence
+            onDone={completeIntro}
+            tagline={ui.introTagline}
+            skipLabel={ui.skip}
+            isRtl={isRtl}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
