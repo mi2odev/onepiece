@@ -4,19 +4,39 @@ import { useReducedMotionSafe } from '../../hooks/useReducedMotionSafe';
 import { useSound } from '../../hooks/useSound';
 import { easeOutSoft } from '../../lib/motion';
 
-// Pre-computed coin-burst vectors (deterministic).
-const BURST = Array.from({ length: 14 }, (_, i) => {
-  const ang = -Math.PI / 2 + (i / 13 - 0.5) * Math.PI * 1.5;
-  const dist = 70 + (i % 4) * 16;
+// Coins that fly out of the chest when it opens (deterministic, fan upward).
+const BURST = Array.from({ length: 12 }, (_, i) => {
+  const ang = -Math.PI / 2 + (i / 11 - 0.5) * Math.PI * 1.5;
+  const dist = 66 + (i % 4) * 18;
   return { x: Math.cos(ang) * dist, y: Math.sin(ang) * dist };
 });
+
+// The treasure mound revealed inside the open chest (cx, cy in the 240×170 stage).
+const TREASURE: { x: number; y: number; r: number; t: 'c' | 'ruby' | 'emerald' }[] = [
+  // bottom row
+  { x: 70, y: 68, r: 11, t: 'c' },
+  { x: 92, y: 70, r: 11, t: 'c' },
+  { x: 120, y: 71, r: 12, t: 'c' },
+  { x: 148, y: 70, r: 11, t: 'c' },
+  { x: 170, y: 68, r: 11, t: 'c' },
+  // middle row
+  { x: 92, y: 58, r: 10, t: 'c' },
+  { x: 120, y: 59, r: 11, t: 'ruby' },
+  { x: 148, y: 58, r: 10, t: 'c' },
+  // top
+  { x: 106, y: 49, r: 9, t: 'c' },
+  { x: 134, y: 49, r: 9, t: 'emerald' },
+  { x: 120, y: 42, r: 8, t: 'c' },
+];
 
 const WOOD = 'linear-gradient(180deg,#8a5a2b 0%,#6b3f1d 55%,#4a2a11 100%)';
 const WOOD_LID = 'linear-gradient(180deg,#9a663180 0%,#8a5a2b 35%,#5c3518 100%)';
 const IRON = 'linear-gradient(180deg,#62626c 0%,#3a3a42 55%,#222228 100%)';
 const BRASS = 'linear-gradient(180deg,#ffe08a 0%,#e0a83a 48%,#a9701c 100%)';
-const PLANKS =
-  'repeating-linear-gradient(90deg, transparent 0 28px, rgba(0,0,0,0.22) 28px 30px)';
+const PLANKS = 'repeating-linear-gradient(90deg, transparent 0 28px, rgba(0,0,0,0.22) 28px 30px)';
+const COIN = 'radial-gradient(circle at 38% 30%, #fff3c8 0%, #f0c452 46%, #c0892a 100%)';
+const GEM_RED = 'radial-gradient(circle at 38% 30%, #ffb3b3 0%, #ef4444 42%, #9b1c1c 100%)';
+const GEM_GREEN = 'radial-gradient(circle at 38% 30%, #b6f2cf 0%, #22c07a 45%, #0f7a4a 100%)';
 
 function Rivets({ vertical = true }: { vertical?: boolean }) {
   return (
@@ -42,7 +62,7 @@ interface Props {
 }
 
 /** Legendary CTA: a tactile 3D wooden treasure chest whose domed lid lifts open
- *  in real perspective, spilling gold, before the journey begins. */
+ *  in real perspective, revealing a mound of gold and spilling coins. */
 export function TreasureChestButton({ label, onBegin }: Props) {
   const reduce = useReducedMotionSafe();
   const { play, unlock } = useSound();
@@ -59,7 +79,7 @@ export function TreasureChestButton({ label, onBegin }: Props) {
       return;
     }
     setOpening(true);
-    window.setTimeout(onBegin, 780);
+    window.setTimeout(onBegin, 820);
   };
 
   return (
@@ -92,27 +112,10 @@ export function TreasureChestButton({ label, onBegin }: Props) {
           {/* Treasure glow (revealed on open) */}
           <motion.span
             aria-hidden
-            className="absolute inset-x-10 top-9 h-14 rounded-full bg-gold blur-md"
-            animate={{ opacity: opening ? 0.95 : 0 }}
+            className="absolute inset-x-10 top-9 h-16 rounded-full bg-gold blur-md"
+            animate={{ opacity: opening ? 1 : 0 }}
             transition={{ duration: 0.4 }}
           />
-
-          {/* Gold coins peeking when open */}
-          {[34, 96, 150].map((x, i) => (
-            <motion.span
-              key={x}
-              aria-hidden
-              className="absolute top-[58px] h-5 w-5 rounded-full"
-              style={{
-                left: x,
-                background: 'radial-gradient(circle at 35% 30%, #fff2bf, #f3c64a 55%, #b9821f)',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.5)',
-              }}
-              initial={{ y: 8, opacity: 0 }}
-              animate={opening ? { y: 0, opacity: 1 } : { y: 8, opacity: 0 }}
-              transition={{ duration: 0.3, delay: i * 0.04 }}
-            />
-          ))}
 
           {/* ── BODY ─────────────────────────────────────────── */}
           <div
@@ -124,8 +127,13 @@ export function TreasureChestButton({ label, onBegin }: Props) {
             }}
           >
             <div className="absolute inset-0 opacity-70" style={{ background: PLANKS }} />
+            {/* dark interior at the mouth (seen when open) */}
+            <div
+              className="absolute inset-x-3 top-0 h-9 rounded-b-md"
+              style={{ background: 'linear-gradient(180deg,#170c04,#3a2410)' }}
+            />
             {/* dark top rim where the lid rests */}
-            <div className="absolute inset-x-0 top-0 h-2.5 bg-black/35" />
+            <div className="absolute inset-x-0 top-0 h-2.5 bg-black/40" />
             {/* side iron bands */}
             <div className="absolute bottom-0 left-7 top-0 w-5" style={{ background: IRON }}>
               <Rivets />
@@ -140,7 +148,7 @@ export function TreasureChestButton({ label, onBegin }: Props) {
             </div>
             {/* lock plate */}
             <div
-              className="absolute left-1/2 top-1.5 flex h-12 w-10 -translate-x-1/2 items-center justify-center rounded-sm"
+              className="absolute left-1/2 top-7 flex h-9 w-10 -translate-x-1/2 items-center justify-center rounded-sm"
               style={{ background: BRASS, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 1px 2px rgba(0,0,0,0.5)' }}
             >
               <span className="block h-3 w-3 rounded-full bg-amber-950/80">
@@ -149,54 +157,77 @@ export function TreasureChestButton({ label, onBegin }: Props) {
             </div>
           </div>
 
-          {/* ── LID (domed, hinged at the back, opens in 3D) ──── */}
-          {/* Centred via explicit `left` (not a Tailwind translate) because the
-              animated rotateX writes `transform`, which would clobber it. */}
+          {/* ── LID (domed, overhangs the body, opens in 3D) ──── */}
           <motion.div
-            className="absolute h-[66px] w-[224px] overflow-hidden rounded-t-[110px] rounded-b-sm"
+            className="absolute h-[66px] w-[232px] overflow-hidden rounded-t-[110px] rounded-b-sm"
             style={{
-              left: 8,
+              left: 4,
               bottom: 98,
               transformOrigin: 'bottom center',
               background: WOOD_LID,
-              boxShadow:
-                'inset 0 4px 0 rgba(255,225,170,0.35), inset 0 -8px 14px rgba(0,0,0,0.4)',
+              boxShadow: 'inset 0 4px 0 rgba(255,225,170,0.35), inset 0 -8px 14px rgba(0,0,0,0.4)',
             }}
-            animate={{ rotateX: opening ? -115 : 0 }}
+            animate={{ rotateX: opening ? -108 : 0 }}
             transition={{ duration: 0.55, ease: easeOutSoft }}
           >
             <div className="absolute inset-0 opacity-60" style={{ background: PLANKS }} />
-            {/* center iron strap */}
             <div className="absolute bottom-0 left-1/2 top-0 w-5 -translate-x-1/2" style={{ background: IRON }}>
               <Rivets />
             </div>
-            {/* bottom iron rail of lid */}
             <div className="absolute inset-x-0 bottom-0 h-3.5" style={{ background: IRON }} />
-            {/* brass clasp */}
             <div
               className="absolute bottom-[-2px] left-1/2 h-5 w-7 -translate-x-1/2 rounded-sm"
               style={{ background: BRASS, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)' }}
             />
-            {/* top sheen */}
             <div className="absolute inset-x-6 top-1 h-3 rounded-full bg-white/25 blur-[2px]" />
           </motion.div>
 
-          {/* Gold coin burst (origin set via explicit left/top — the animated
-              x/y writes `transform`, so a translate class would be clobbered). */}
+          {/* Treasure mound (pops up inside the chest on open) */}
+          {TREASURE.map((it, i) => {
+            const isGem = it.t !== 'c';
+            const bg = it.t === 'ruby' ? GEM_RED : it.t === 'emerald' ? GEM_GREEN : COIN;
+            return (
+              <motion.span
+                key={i}
+                aria-hidden
+                className="absolute rounded-full"
+                style={{
+                  left: it.x - it.r,
+                  top: it.y - it.r,
+                  width: it.r * 2,
+                  height: it.r * 2,
+                  background: bg,
+                  boxShadow: isGem
+                    ? 'inset 0 -2px 4px rgba(0,0,0,0.45), inset 0 2px 3px rgba(255,255,255,0.35), 0 2px 3px rgba(0,0,0,0.5)'
+                    : 'inset 0 0 0 1.5px rgba(140,85,20,0.5), inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -2px 3px rgba(120,70,15,0.55), 0 2px 3px rgba(0,0,0,0.4)',
+                }}
+                initial={{ scale: 0, opacity: 0, y: 8 }}
+                animate={opening ? { scale: 1, opacity: 1, y: 0 } : { scale: 0, opacity: 0, y: 8 }}
+                transition={{ duration: 0.4, delay: opening ? 0.24 + i * 0.02 : 0, ease: 'backOut' }}
+              >
+                {isGem ? (
+                  <span className="absolute left-[26%] top-[22%] h-[26%] w-[26%] rounded-full bg-white/75 blur-[1px]" />
+                ) : (
+                  <span
+                    className="absolute inset-[26%] rounded-full"
+                    style={{ boxShadow: 'inset 0 0 0 1px rgba(140,85,20,0.45)' }}
+                  />
+                )}
+              </motion.span>
+            );
+          })}
+
+          {/* Gold coin burst (origin set via explicit left/top to avoid clobbering
+              the animated transform) */}
           {BURST.map((b, i) => (
             <motion.span
               key={i}
               aria-hidden
               className="absolute h-2.5 w-2.5 rounded-full"
-              style={{
-                left: 115,
-                top: 52,
-                background: 'radial-gradient(circle at 35% 30%, #fff2bf, #f3c64a 55%, #b9821f)',
-                boxShadow: '0 0 8px rgba(255,200,80,0.9)',
-              }}
+              style={{ left: 119, top: 50, background: COIN, boxShadow: '0 0 8px rgba(255,200,80,0.9)' }}
               initial={{ x: 0, y: 0, opacity: 0, scale: 0.5 }}
               animate={opening ? { x: b.x, y: b.y, opacity: [0, 1, 0], scale: 1 } : { opacity: 0 }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
+              transition={{ duration: 0.85, delay: 0.1, ease: 'easeOut' }}
             />
           ))}
         </div>
