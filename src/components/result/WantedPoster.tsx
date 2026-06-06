@@ -22,8 +22,10 @@ export function WantedPoster({ character, reveal, onImpact }: Props) {
   const reduce = useReducedMotionSafe();
   const [tilt, setTilt] = useState({ rx: 0, ry: 0, active: false });
 
+  // Pointer-driven 3D tilt — works for both mouse and touch (drag a finger
+  // across the poster on mobile to tilt it).
   const onMove = (e: PointerEvent<HTMLDivElement>) => {
-    if (reduce || !window.matchMedia('(pointer: fine)').matches) return;
+    if (reduce) return;
     const r = e.currentTarget.getBoundingClientRect();
     const px = (e.clientX - r.left) / r.width;
     const py = (e.clientY - r.top) / r.height;
@@ -42,27 +44,11 @@ export function WantedPoster({ character, reveal, onImpact }: Props) {
       onAnimationComplete={() => reveal && onImpact?.()}
       style={{ perspective: 1100 }}
     >
-      {/* Soft base glow — gently breathing, tied to the poster shape */}
-      <motion.div
-        aria-hidden
-        className="absolute -inset-7 -z-20 rounded-[28px] blur-3xl"
-        style={{ background: `radial-gradient(60% 55% at 50% 45%, ${character.color}66, transparent 72%)` }}
-        animate={reduce ? {} : { opacity: [0.5, 0.85, 0.5], scale: [1, 1.05, 1] }}
-        transition={reduce ? undefined : { duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      {/* Rotating legendary aura halo */}
-      <motion.div
-        aria-hidden
-        className="absolute -inset-3 -z-10 rounded-[20px] opacity-60 blur-xl"
-        style={{
-          background: `conic-gradient(from 0deg, transparent 0deg, ${character.color} 70deg, #ffd54a 140deg, transparent 200deg, ${character.color} 290deg, transparent 360deg)`,
-        }}
-        animate={reduce ? {} : { rotate: 360 }}
-        transition={reduce ? undefined : { duration: 14, repeat: Infinity, ease: 'linear' }}
-      />
-
       <motion.div
         onPointerMove={onMove}
+        onPointerDown={onMove}
+        onPointerUp={reset}
+        onPointerCancel={reset}
         onPointerLeave={reset}
         animate={
           reduce

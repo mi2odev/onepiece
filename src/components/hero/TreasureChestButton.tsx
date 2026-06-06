@@ -396,7 +396,7 @@ export function TreasureChestButton({ label, onBegin }: Props) {
         style={{ width: 'calc(var(--cs) * 240px)', height: 'calc(var(--cs) * 252px)' }}
       >
         <div
-          className="absolute left-1/2 top-0 isolate w-[240px]"
+          className="absolute left-1/2 top-0 isolate flex w-[240px] flex-col items-center"
           style={{ transformOrigin: 'top center', transform: 'translateX(-50%) scale(var(--cs))' }}
         >
         {/* ── Ambient aura (behind everything) ───────────────────────────── */}
@@ -921,7 +921,7 @@ export function TreasureChestButton({ label, onBegin }: Props) {
 
         {/* ── Label plaque ─────────────────────────────────────────────────── */}
         <div
-          className="mx-auto mt-1 w-max rounded-lg px-7 py-2 font-display text-base font-extrabold uppercase tracking-wider text-amber-950 transition-transform duration-300 group-hover:-translate-y-0.5 sm:text-lg"
+          className="mt-1 w-max rounded-lg px-7 py-2 font-display text-base font-extrabold uppercase tracking-wider text-amber-950 transition-transform duration-300 group-hover:-translate-y-0.5 sm:text-lg"
           style={{
             background: 'linear-gradient(180deg,#ffe9a8 0%,#e0a83a 48%,#a9701c 100%)',
             boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.55), 0 4px 12px rgba(0,0,0,0.45), 0 0 18px rgba(255,160,40,0.3)',

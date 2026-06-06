@@ -3,7 +3,6 @@ import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import type { AnswerScore, Lang, Question } from '../../types';
 import type { UIStrings } from '../../data/translations';
 import { useReducedMotionSafe } from '../../hooks/useReducedMotionSafe';
-import { useSound } from '../../hooks/useSound';
 import { easeOutSoft } from '../../lib/motion';
 import { ParchmentCard } from './ParchmentCard';
 import { AnswerCard } from './AnswerCard';
@@ -89,7 +88,6 @@ interface QuestionPanelProps {
 
 function QuestionPanel({ question, number, ui, direction, onAnswer }: QuestionPanelProps) {
   const reduce = useReducedMotionSafe();
-  const { play } = useSound();
   const [selected, setSelected] = useState<number | null>(null);
   const lockRef = useRef(false);
 
@@ -97,7 +95,6 @@ function QuestionPanel({ question, number, ui, direction, onAnswer }: QuestionPa
     if (lockRef.current) return;
     lockRef.current = true;
     setSelected(i);
-    play('haki');
     window.setTimeout(() => onAnswer(question.answers[i].scores), reduce ? 0 : 460);
   };
 
