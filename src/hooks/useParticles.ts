@@ -7,6 +7,8 @@ export interface ParticleOptions {
   maxDPR?: number;
   /** Global speed multiplier. */
   speed?: number;
+  /** Freeze the rAF loop (e.g. while a full-screen overlay covers the canvas). */
+  paused?: boolean;
 }
 
 interface Particle {
@@ -32,11 +34,12 @@ interface Particle {
  */
 export function useParticles(
   canvasRef: RefObject<HTMLCanvasElement | null>,
-  { maxCount = 130, maxDPR = 2, speed = 1 }: ParticleOptions = {},
+  { maxCount = 130, maxDPR = 2, speed = 1, paused = false }: ParticleOptions = {},
 ): void {
   const raf = useRef(0);
   const particles = useRef<Particle[]>([]);
   const size = useRef({ w: 0, h: 0 });
+  const lastSize = useRef({ w: 0, h: 0 });
   const running = useRef(false);
 
   useEffect(() => {
@@ -72,11 +75,17 @@ export function useParticles(
       const dpr = Math.min(window.devicePixelRatio || 1, maxDPR);
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
+      const sizeChanged = w !== lastSize.current.w || h !== lastSize.current.h;
       size.current = { w, h };
       canvas.width = Math.max(1, Math.floor(w * dpr));
       canvas.height = Math.max(1, Math.floor(h * dpr));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      populate();
+      // Only (re)seed when the field is empty or the canvas actually resized, so
+      // toggling `paused` doesn't teleport every particle to a new position.
+      if (sizeChanged || particles.current.length === 0) {
+        lastSize.current = { w, h };
+        populate();
+      }
     };
 
     const draw = (dt: number) => {
@@ -116,7 +125,7 @@ export function useParticles(
     };
 
     const start = () => {
-      if (running.current || reduceMQ.matches) return;
+      if (running.current || reduceMQ.matches || paused) return;
       running.current = true;
       last = 0;
       raf.current = requestAnimationFrame(frame);
@@ -130,9 +139,10 @@ export function useParticles(
       draw(0);
     };
 
-    // Initial paint.
+    // Initial paint. When paused (or reduced motion) we render one static frame
+    // and skip the loop entirely, so a covering overlay costs nothing.
     resize();
-    if (reduceMQ.matches) staticFrame();
+    if (reduceMQ.matches || paused) staticFrame();
     else start();
 
     const onVisibility = () => {
@@ -175,5 +185,5 @@ export function useParticles(
       reduceMQ.removeEventListener?.('change', onReduceChange);
       cancelAnimationFrame(resizeRaf);
     };
-  }, [canvasRef, maxCount, maxDPR, speed]);
+  }, [canvasRef, maxCount, maxDPR, speed, paused]);
 }

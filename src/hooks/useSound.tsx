@@ -28,9 +28,11 @@ const MUSIC_VOLUME = 0.32;
 
 const SFX: Record<SoundName, { src: string; volume: number }> = {
   reveal: { src: '/sound/Observation%20Haki.mp3', volume: 0.85 },
+  // Quiz answer-select reuses the Observation-Haki sting (the only Haki SFX we
+  // ship); kept lower so it punctuates without overpowering the music.
+  haki: { src: '/sound/Observation%20Haki.mp3', volume: 0.5 },
   // The rest are optional slots — drop files into /public/audio/ to enable.
   chestOpen: { src: '/audio/chest-open.mp3', volume: 0.6 },
-  haki: { src: '/audio/haki.mp3', volume: 0.5 },
   sail: { src: '/audio/sail.mp3', volume: 0.45 },
   success: { src: '/audio/success.mp3', volume: 0.6 },
   select: { src: '/audio/select.mp3', volume: 0.35 },

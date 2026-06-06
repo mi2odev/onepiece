@@ -82,15 +82,20 @@ export function GrandLineMap({ current, total, lang }: Props) {
           );
         })}
 
-        {/* The ship */}
-        <motion.div
-          className="absolute top-6 z-10 -translate-x-1/2 -translate-y-[125%] text-xl"
-          style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}
-          animate={{ left: `${progress * 100}%` }}
-          transition={{ duration: 0.8, ease: easeOutSoft }}
-        >
-          ⛵
-        </motion.div>
+        {/* The ship — the Thousand Sunny sailing the route */}
+        <motion.img
+          src="/images/sunny.png"
+          alt=""
+          aria-hidden
+          draggable={false}
+          className="absolute top-6 z-10 h-16 w-auto"
+          style={{ filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.65))' }}
+          animate={{ left: `${progress * 100}%`, x: '-62%', y: ['-64%', '-68%', '-64%'] }}
+          transition={{
+            left: { duration: 1.2, ease: easeOutSoft },
+            y: { duration: 4, ease: 'easeInOut', repeat: Infinity },
+          }}
+        />
       </div>
     </div>
   );

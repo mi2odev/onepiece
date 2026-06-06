@@ -20,17 +20,19 @@ export function SailTransition() {
         }}
         initial={{ x: '-120%' }}
         animate={{ x: '120%' }}
-        transition={{ duration: 0.9, ease: 'easeInOut' }}
+        transition={{ duration: 1.3, ease: 'easeInOut' }}
       />
-      {/* Ship */}
-      <motion.div
-        className="absolute top-1/2 text-4xl drop-shadow-[0_6px_10px_rgba(0,0,0,0.6)] sm:text-5xl"
-        initial={{ x: '-15vw', y: '-50%', opacity: 0 }}
-        animate={{ x: '115vw', y: ['-50%', '-58%', '-50%'], opacity: [0, 1, 1, 0] }}
-        transition={{ duration: 1, ease: 'easeInOut' }}
-      >
-        ⛵
-      </motion.div>
+      {/* Ship — the Thousand Sunny gliding across on each advance */}
+      <motion.img
+        src="/images/sunny.png"
+        alt=""
+        aria-hidden
+        draggable={false}
+        className="absolute top-1/2 h-44 w-auto drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] sm:h-56"
+        initial={{ x: '-20vw', y: '-50%', opacity: 0 }}
+        animate={{ x: '120vw', y: ['-50%', '-58%', '-50%'], opacity: [0, 1, 1, 0] }}
+        transition={{ duration: 1.4, ease: 'easeInOut' }}
+      />
     </div>
   );
 }

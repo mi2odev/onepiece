@@ -44,7 +44,7 @@ export function QuizFlow({
 
   return (
     <div
-      className={`relative flex min-h-[100dvh] flex-col px-4 pb-28 pt-6 sm:pt-8 ${isRtl ? 'font-ui' : ''}`}
+      className={`relative flex min-h-[100dvh] flex-col px-4 pb-28 pt-16 md:pt-8 ${isRtl ? 'font-ui' : ''}`}
     >
       <div className="mx-auto w-full max-w-3xl">
         <GrandLineMap current={index + 1} total={total} lang={lang} />
@@ -108,7 +108,9 @@ function QuestionPanel({ question, number, ui, direction, onAnswer }: QuestionPa
       x: 0,
       opacity: 1,
       rotate: -0.6,
-      transition: { duration: reduce ? 0.2 : 0.5, ease: easeOutSoft },
+      // Hold the new question hidden until Sunny has sailed past center, then
+      // reveal it in her wake so the page-turn reads as one synced beat.
+      transition: { duration: reduce ? 0.2 : 0.5, ease: easeOutSoft, delay: reduce ? 0 : 0.35 },
     },
     exit: (d: number) =>
       reduce
@@ -117,7 +119,7 @@ function QuestionPanel({ question, number, ui, direction, onAnswer }: QuestionPa
             x: d >= 0 ? -110 : 110,
             opacity: 0,
             rotate: d >= 0 ? -2.6 : 2.6,
-            transition: { duration: 0.45, ease: easeOutSoft },
+            transition: { duration: 0.4, ease: easeOutSoft },
           },
   };
 

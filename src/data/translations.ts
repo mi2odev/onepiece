@@ -274,7 +274,7 @@ export const charactersAr = {
     title: 'القائد والحالم',
     description: 'متفائل ومغامر وقائد بالفطرة! مثل لوفي تُلهم الآخرين بإصرارك وعدوى حماسك.',
     traits: ['شجاع','مرِح','قائد','مُصمم'],
-    color: '#DC143C', image: './images/luffy.jpg', emoji: '👑'
+    color: '#DC143C', image: './images/luffy.png', emoji: '👑'
   },
   zoro: {
     name: 'رورونوا زورو',

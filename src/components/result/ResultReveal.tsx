@@ -1,20 +1,23 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useInView } from 'framer-motion';
 import type { CharacterKey, Lang, Scores } from '../../types';
 import type { UIStrings } from '../../data/translations';
 import { getCharacters } from '../../data/translations';
 import { computeRanking } from '../../lib/scoring';
-import { computeAffinities, computeTraits } from '../../lib/traits';
-import { getLore, getPowerType } from '../../data/lore';
+import { computeAffinities, computeTraits, type TraitValue } from '../../lib/traits';
+import { getLore } from '../../data/lore';
 import { fadeUp, easeOutSoft } from '../../lib/motion';
 import { useReducedMotionSafe } from '../../hooks/useReducedMotionSafe';
 import { useSound } from '../../hooks/useSound';
+import { useCameraShake } from '../../hooks/useCameraShake';
 import { downloadNodeAsPng } from '../../lib/share';
 import { Button } from '../ui/Button';
-import { BountyPoster } from './BountyPoster';
-import { HakiRing } from './HakiRing';
-import { TraitRadar } from './TraitRadar';
-import { CharacterShowcase } from './CharacterShowcase';
+import { WantedPoster } from './WantedPoster';
+import { RevealSequence } from './RevealSequence';
+import { IdentityCard } from './IdentityCard';
+import { LogPoseChart } from './LogPoseChart';
+import { StatGauges } from './StatGauges';
+import { CrewBountyBoard } from './CrewBountyBoard';
 import { ShareCard } from './ShareCard';
 
 interface Props {
@@ -37,35 +40,41 @@ export function ResultReveal({ scores, lang, ui, isRtl, onRestart }: Props) {
   const aff = computeAffinities(traits);
   const loreTop = getLore(top.key, lang);
 
-  const [revealed, setRevealed] = useState(reduce);
+  const get = (k: string) => traits.find((t) => t.key === k)?.value ?? 0;
+  const adventureSpirit = Math.round((get('adventure') + get('courage') + get('humor')) / 3);
+
+  // Reveal state machine: cinematic curtain → live stage → poster impact.
+  const [live, setLive] = useState(reduce);
+  const [impacted, setImpacted] = useState(reduce);
+  const { ref: shakeRef, shake } = useCameraShake<HTMLDivElement>();
+  const sfxRef = useRef(false);
+
+  const onImpact = () => {
+    shake(14);
+    setImpacted(true);
+    if (!sfxRef.current) {
+      sfxRef.current = true;
+      play('reveal');
+    }
+  };
+
   const [selected, setSelected] = useState<CharacterKey | null>(null);
   const [shareMsg, setShareMsg] = useState<string | null>(null);
   const shareRef = useRef<HTMLDivElement>(null);
-  const revealSfxRef = useRef(false);
 
+  // Reduced motion: skip the cinematic and present everything immediately.
   useEffect(() => {
-    // The dramatic beat: bounty rises, Haki ring fills, and the
-    // Observation-Haki sting hits — exactly once.
-    const fire = () => {
-      setRevealed(true);
-      if (!revealSfxRef.current) {
-        revealSfxRef.current = true;
-        play('reveal');
-      }
-    };
     if (reduce) {
-      fire();
-      return;
+      setLive(true);
+      setImpacted(true);
     }
-    const t = window.setTimeout(fire, 1200);
-    return () => window.clearTimeout(t);
-  }, [reduce, play]);
+  }, [reduce]);
 
   const onShare = async () => {
     if (!shareRef.current) return;
     play('success');
     try {
-      await downloadNodeAsPng(shareRef.current, `straw-hat-${top.key}.png`);
+      await downloadNodeAsPng(shareRef.current, `wanted-${top.key}.png`);
       setShareMsg(lang === 'ar' ? 'تم تنزيل الملصق' : 'Poster downloaded');
     } catch {
       setShareMsg(lang === 'ar' ? 'تعذّر التنزيل' : 'Download failed');
@@ -73,79 +82,50 @@ export function ResultReveal({ scores, lang, ui, isRtl, onRestart }: Props) {
     window.setTimeout(() => setShareMsg(null), 2600);
   };
 
+  const adventureLabel = lang === 'ar' ? 'روح المغامرة' : 'Adventure Spirit';
+
   return (
     <div className={`relative min-h-[100dvh] pb-28 ${isRtl ? 'font-ui' : ''}`}>
-      {!reduce && <IntroCover />}
+      {!reduce && !live && <RevealSequence onDone={() => setLive(true)} />}
 
-      {/* A — Reveal */}
-      <section className="px-4 pt-16 sm:pt-20">
-        <div className="mx-auto flex max-w-4xl flex-col items-center gap-8 md:flex-row md:justify-center md:gap-12">
-          <motion.div
-            initial={reduce ? false : { y: 70, opacity: 0, scale: 0.9 }}
-            animate={revealed ? { y: 0, opacity: 1, scale: 1 } : undefined}
-            transition={{ duration: 0.9, ease: easeOutSoft, delay: 0.15 }}
-          >
-            <BountyPoster character={topChar} floating />
-          </motion.div>
+      {/* ── A · THE BOUNTY REVEAL ─────────────────────────────────────────── */}
+      <section className="px-4 pt-14 sm:pt-20">
+        <div
+          ref={shakeRef}
+          className="mx-auto flex max-w-4xl flex-col items-center gap-8 md:flex-row md:items-center md:justify-center md:gap-12"
+        >
+          <div className="relative">
+            <WantedPoster character={topChar} reveal={live} onImpact={onImpact} />
+            {/* Impact dust ring under the poster on landing */}
+            {impacted && !reduce && (
+              <motion.span
+                aria-hidden
+                className="pointer-events-none absolute -bottom-3 left-1/2 h-6 w-56 -translate-x-1/2 rounded-[100%]"
+                style={{ background: 'radial-gradient(ellipse, rgba(255,210,120,0.5), transparent 70%)' }}
+                initial={{ scaleX: 0.3, opacity: 0 }}
+                animate={{ scaleX: [0.3, 1.3, 1], opacity: [0, 0.8, 0] }}
+                transition={{ duration: 0.7, ease: easeOutSoft }}
+              />
+            )}
+          </div>
 
           <motion.div
             initial={reduce ? false : { opacity: 0, y: 30 }}
-            animate={revealed ? { opacity: 1, y: 0 } : undefined}
-            transition={{ duration: 0.7, delay: 0.5 }}
-            className="glass-strong relative w-full max-w-sm overflow-hidden rounded-3xl p-6 text-center sm:p-8"
-            style={{ boxShadow: `0 24px 60px -26px ${topChar.color}99` }}
+            animate={impacted ? { opacity: 1, y: 0 } : undefined}
+            transition={{ duration: 0.7, ease: easeOutSoft, delay: 0.1 }}
+            className="w-full max-w-sm"
           >
-            {/* Character-tinted top glow */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-x-0 -top-2 h-28"
-              style={{ background: `radial-gradient(80% 100% at 50% 0%, ${topChar.color}33, transparent 70%)` }}
-            />
-
-            <div className="relative">
-              <span className="text-[0.7rem] uppercase tracking-[0.3em] text-gold/80">
-                {ui.yourCharacterIs}
-              </span>
-              <h1 className="text-fire text-shadow-poster font-display text-4xl font-black leading-tight sm:text-5xl">
-                {topChar.name}
-              </h1>
-              <p className="mt-1 text-cloud/70">{topChar.title}</p>
-
-              <div
-                className="mx-auto my-5 h-px w-24"
-                style={{ background: 'linear-gradient(90deg,transparent,rgb(var(--gold) / 0.6),transparent)' }}
-              />
-
-              <div className="flex justify-center">
-                <HakiRing value={top.percentage} color={topChar.color} start={revealed} matchLabel={ui.match} />
-              </div>
-
-              <p className="mx-auto mt-6 max-w-xs text-[0.95rem] italic text-cloud/85">
-                “{loreTop.quote}”
-              </p>
-
-              <div className="mt-5 flex flex-wrap justify-center gap-2">
-                {topChar.traits.map((t) => (
-                  <span
-                    key={t}
-                    className="rounded-full border px-3 py-1 text-xs font-medium"
-                    style={{ borderColor: `${topChar.color}80`, color: topChar.color, background: `${topChar.color}1a` }}
-                  >
-                    #{t}
-                  </span>
-                ))}
-              </div>
-            </div>
+            <IdentityCard character={topChar} percentage={top.percentage} quote={loreTop.quote} ui={ui} start={impacted} />
           </motion.div>
         </div>
 
         {/* Scroll cue */}
-        {revealed && (
+        {impacted && (
           <motion.div
             className="mt-10 flex justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: reduce ? 0 : 1.4, duration: 0.6 }}
+            transition={{ delay: reduce ? 0 : 1.3, duration: 0.6 }}
           >
             <motion.div
               animate={reduce ? {} : { y: [0, 7, 0] }}
@@ -161,8 +141,9 @@ export function ResultReveal({ scores, lang, ui, isRtl, onRestart }: Props) {
         )}
       </section>
 
-      {/* B — Character intro */}
+      {/* ── B · CAPTAIN'S LOG ─────────────────────────────────────────────── */}
       <Section className="mx-auto mt-12 max-w-4xl px-4">
+        <SectionHeading title={ui.summary} />
         <div className="grid gap-4 md:grid-cols-2">
           <InfoCard title={ui.summary}>{topChar.description}</InfoCard>
           <InfoCard title={ui.dream}>{loreTop.dream}</InfoCard>
@@ -172,36 +153,42 @@ export function ResultReveal({ scores, lang, ui, isRtl, onRestart }: Props) {
         <div className="mt-4">
           <InfoCard title={ui.fightingStyle}>{loreTop.fightingStyle}</InfoCard>
         </div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          <AffinityCard label={ui.hakiAffinity} value={aff.haki} color="#9d6bff" />
-          <AffinityCard label={getPowerType(top.key, lang)} value={aff.devilFruit} color="#ff8a00" />
-          <AffinityCard label={ui.crewAffinity} value={aff.crew} color="#7ee7c1" />
-        </div>
       </Section>
 
-      {/* C — Analytics radar */}
-      <Section className="mx-auto mt-14 max-w-4xl px-4">
-        <SectionHeading title={ui.analytics} />
+      {/* ── C · LOG POSE (personality) ────────────────────────────────────── */}
+      <Section className="mx-auto mt-14 max-w-3xl px-4">
+        <SectionHeading title={ui.analytics} subtitle={ui.personalityTraits} />
         <div
-          className="rounded-3xl p-4 sm:p-6"
+          className="rounded-3xl p-4 sm:p-8"
           style={{
             background: 'linear-gradient(160deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02))',
             border: `1px solid ${topChar.color}33`,
             boxShadow: `inset 0 0 60px ${topChar.color}14`,
           }}
         >
-          <TraitRadar traits={traits} color={topChar.color} />
+          <LogPoseTracked traits={traits} color={topChar.color} />
         </div>
       </Section>
 
-      {/* D — Showcase */}
-      <Section className="mx-auto mt-14 max-w-5xl px-4">
-        <SectionHeading title={ui.showcase} subtitle={ui.seeHowYouMatch} />
-        <CharacterShowcase ranking={ranking} characters={characters} onSelect={setSelected} />
+      {/* ── D · POWERS & AFFINITIES ───────────────────────────────────────── */}
+      <Section className="mx-auto mt-14 max-w-4xl px-4">
+        <SectionHeading title={lang === 'ar' ? 'القدرات' : 'Powers & Affinities'} />
+        <StatGaugesTracked
+          haki={{ value: aff.haki, label: ui.hakiAffinity }}
+          devilFruit={{ value: aff.devilFruit, label: ui.devilFruitAffinity }}
+          crew={{ value: aff.crew, label: ui.crewAffinity }}
+          adventure={{ value: adventureSpirit, label: adventureLabel }}
+        />
       </Section>
 
-      {/* F — Actions */}
-      <Section className="mx-auto mt-12 max-w-md px-4">
+      {/* ── E · BOUNTY COLLECTION ─────────────────────────────────────────── */}
+      <Section className="mx-auto mt-16 max-w-5xl px-4">
+        <SectionHeading title={ui.showcase} subtitle={ui.seeHowYouMatch} />
+        <CrewBountyBoard ranking={ranking} characters={characters} onSelect={setSelected} />
+      </Section>
+
+      {/* ── F · ACTIONS ───────────────────────────────────────────────────── */}
+      <Section className="mx-auto mt-14 max-w-md px-4">
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <Button variant="gold" className="px-6 py-3 text-base" onClick={onRestart}>
             🔄 {ui.takeAgain}
@@ -226,14 +213,7 @@ export function ResultReveal({ scores, lang, ui, isRtl, onRestart }: Props) {
       </Section>
 
       {/* Offscreen export node */}
-      <ShareCard
-        nodeRef={shareRef}
-        character={topChar}
-        percentage={top.percentage}
-        lang={lang}
-        ui={ui}
-        lore={loreTop}
-      />
+      <ShareCard nodeRef={shareRef} character={topChar} percentage={top.percentage} lang={lang} ui={ui} lore={loreTop} />
 
       {/* Character modal */}
       <AnimatePresence>
@@ -258,28 +238,28 @@ export function ResultReveal({ scores, lang, ui, isRtl, onRestart }: Props) {
   );
 }
 
-// ── Cinematic intro: black + fog, fading to reveal ──────────────────────────
-function IntroCover() {
+// ── In-view wrappers so heavy visuals only animate when scrolled to ──────────
+function LogPoseTracked({ traits, color }: { traits: TraitValue[]; color: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.3 });
   return (
-    <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
-      <motion.div
-        className="absolute inset-0 bg-black"
-        initial={{ opacity: 1 }}
-        animate={{ opacity: 0 }}
-        transition={{ duration: 1.0, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute inset-0"
-        style={{ background: 'radial-gradient(60% 50% at 50% 42%, rgba(220,235,255,0.18), transparent 70%)' }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: [0, 0.7, 0] }}
-        transition={{ duration: 1.7, ease: 'easeInOut' }}
-      />
+    <div ref={ref}>
+      <LogPoseChart traits={traits} color={color} start={inView} />
     </div>
   );
 }
 
-// ── Scroll-revealed section wrapper ─────────────────────────────────────────
+function StatGaugesTracked(props: Omit<Parameters<typeof StatGauges>[0], 'start'>) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.25 });
+  return (
+    <div ref={ref}>
+      <StatGauges {...props} start={inView} />
+    </div>
+  );
+}
+
+// ── Scroll-revealed section wrapper ──────────────────────────────────────────
 function Section({ children, className = '' }: { children: ReactNode; className?: string }) {
   const reduce = useReducedMotionSafe();
   return (
@@ -299,17 +279,11 @@ function SectionHeading({ title, subtitle }: { title: string; subtitle?: string 
   return (
     <div className="mb-6 text-center">
       <div className="flex items-center justify-center gap-3">
-        <span
-          className="h-px w-8 sm:w-16"
-          style={{ background: 'linear-gradient(90deg, transparent, rgb(var(--gold) / 0.6))' }}
-        />
+        <span className="h-px w-8 sm:w-16" style={{ background: 'linear-gradient(90deg, transparent, rgb(var(--gold) / 0.6))' }} />
         <span className="h-1.5 w-1.5 rotate-45 bg-gold/80" />
         <h2 className="font-display text-2xl font-black tracking-wide text-cloud sm:text-3xl">{title}</h2>
         <span className="h-1.5 w-1.5 rotate-45 bg-gold/80" />
-        <span
-          className="h-px w-8 sm:w-16"
-          style={{ background: 'linear-gradient(270deg, transparent, rgb(var(--gold) / 0.6))' }}
-        />
+        <span className="h-px w-8 sm:w-16" style={{ background: 'linear-gradient(270deg, transparent, rgb(var(--gold) / 0.6))' }} />
       </div>
       {subtitle && <p className="mt-2 text-sm text-cloud/60">{subtitle}</p>}
     </div>
@@ -341,30 +315,6 @@ function ListCard({ title, items, dot }: { title: string; items: string[]; dot: 
   );
 }
 
-function AffinityCard({ label, value, color }: { label: string; value: number; color: string }) {
-  return (
-    <div className="glass rounded-2xl p-5">
-      <div className="mb-2 flex items-baseline justify-between gap-2">
-        <h3 className="text-xs font-semibold uppercase leading-tight tracking-wide text-cloud/70">
-          {label}
-        </h3>
-        <span className="shrink-0 text-base font-bold" style={{ color }}>
-          {value}%
-        </span>
-      </div>
-      <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/10">
-        <motion.div
-          className="h-full rounded-full"
-          style={{ background: `linear-gradient(90deg, ${color}aa, ${color})`, boxShadow: `0 0 10px ${color}66` }}
-          initial={{ width: 0 }}
-          animate={{ width: `${value}%` }}
-          transition={{ duration: 0.9, ease: easeOutSoft, delay: 0.15 }}
-        />
-      </div>
-    </div>
-  );
-}
-
 interface ModalProps {
   charKey: CharacterKey;
   lang: Lang;
@@ -379,19 +329,7 @@ interface ModalProps {
   onClose: () => void;
 }
 
-function CharacterModal({
-  charKey,
-  lang,
-  ui,
-  color,
-  name,
-  title,
-  description,
-  image,
-  emoji,
-  traits,
-  onClose,
-}: ModalProps) {
+function CharacterModal({ charKey, lang, ui, color, name, title, description, image, emoji, traits, onClose }: ModalProps) {
   const l = getLore(charKey, lang);
   return (
     <motion.div
@@ -429,10 +367,7 @@ function CharacterModal({
               if (sib) sib.style.display = 'flex';
             }}
           />
-          <div
-            className="hidden h-full w-full items-center justify-center text-5xl"
-            style={{ backgroundColor: color }}
-          >
+          <div className="hidden h-full w-full items-center justify-center text-5xl" style={{ backgroundColor: color }}>
             {emoji}
           </div>
         </div>
@@ -448,11 +383,7 @@ function CharacterModal({
         </div>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           {traits.map((t) => (
-            <span
-              key={t}
-              className="rounded-full border px-2.5 py-1 text-xs"
-              style={{ borderColor: color, color, background: `${color}1a` }}
-            >
+            <span key={t} className="rounded-full border px-2.5 py-1 text-xs" style={{ borderColor: color, color, background: `${color}1a` }}>
               #{t}
             </span>
           ))}

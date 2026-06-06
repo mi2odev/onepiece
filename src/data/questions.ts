@@ -153,7 +153,7 @@ export const characters = {
     description: "You're optimistic, adventurous, and a natural leader! Like Luffy, you inspire others with your unwavering determination and infectious enthusiasm.",
     traits: ["Courageous", "Fun-loving", "Leader", "Determined"],
     color: "#DC143C",
-    image: "./images/luffy.jpg",
+    image: "./images/luffy.png",
     emoji: "👑"
   },
   zoro: {

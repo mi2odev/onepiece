@@ -9,8 +9,12 @@ import { ParticleCanvas } from './ParticleCanvas';
 /**
  * The living world. Mounted once at the app root so it persists (and keeps
  * animating) across every phase. Fixed, non-interactive, sits behind content.
+ *
+ * `paused` freezes the JS particle loop while a full-screen overlay (the intro)
+ * covers the canvas — it can't be seen, so there's no reason to burn frames on
+ * it and starve the overlay's own animations.
  */
-export function Background() {
+export function Background({ paused = false }: { paused?: boolean }) {
   const { x, y } = useMouseParallax();
 
   return (
@@ -23,7 +27,7 @@ export function Background() {
       <LightRays />
       <IslandSilhouettes px={x} py={y} />
       <FogLayer />
-      <ParticleCanvas />
+      <ParticleCanvas paused={paused} />
 
       {/* Cinematic vignette to focus the centre */}
       <div

@@ -100,7 +100,66 @@
   100% { transform: translateY(-120px) scale(1.25); opacity: 0; }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Legendary treasure-chest CTA — always-on idle loops. Transform/opacity only
+   (compositor-friendly); nothing here animates blur or layout. The chest's
+   orchestrated motion (hover escalation, click unlock) is owned by Framer
+   Motion + GSAP on *separate* nested nodes so engines never fight a transform.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Whole-chest breathing — a slow living swell. */
+@keyframes chest-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.018); }
+}
+
+/* Very subtle lid sway on its bottom hinge (origin set on the element). */
+@keyframes chest-lid-idle {
+  0%, 100% { transform: rotateX(0deg); }
+  50% { transform: rotateX(-1.6deg); }
+}
+
+/* Golden light breathing through the lid seam (no blur animation). */
+@keyframes chest-seam-pulse {
+  0%, 100% { opacity: 0.32; transform: scaleY(1); }
+  50% { opacity: 0.72; transform: scaleY(1.3); }
+}
+
+/* Treasure sparkle: bloom in, twist, vanish. */
+@keyframes chest-sparkle {
+  0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+  18% { opacity: 1; transform: scale(1.35) rotate(35deg); }
+  46% { opacity: 0; transform: scale(0.5) rotate(80deg); }
+}
+
+/* Small gold/teal motes rising off the chest and fading out. */
+@keyframes chest-mote-rise {
+  0% { opacity: 0; transform: translate3d(0, 6px, 0) scale(0.7); }
+  18% { opacity: var(--mote-peak, 0.85); }
+  100% { opacity: 0; transform: translate3d(var(--mote-drift, 4px), -30px, 0) scale(1.1); }
+}
+
+/* Water reflection shimmer beneath the chest. */
+@keyframes chest-refl-drift {
+  0%, 100% { opacity: 0.22; transform: scaleY(-1) translateY(0); }
+  50% { opacity: 0.3; transform: scaleY(-1) translateY(2px); }
+}
+
+/* Glowing artifact orb — soft magical pulse (opacity + scale only). */
+@keyframes chest-orb {
+  0%, 100% { opacity: 0.8; transform: scale(0.94); }
+  50% { opacity: 1; transform: scale(1.07); }
+}
+
 /* ── Helper classes ───────────────────────────────────────────────────── */
+.animate-chest-breathe { animation: chest-breathe 6.7s ease-in-out infinite; }
+.animate-chest-lid-idle { animation: chest-lid-idle 8.3s ease-in-out infinite; transform-origin: 50% 100%; }
+.animate-chest-seam { animation: chest-seam-pulse 4.9s ease-in-out infinite; }
+.animate-chest-sparkle { animation: chest-sparkle 7s ease-in-out infinite; }
+.animate-chest-mote { animation: chest-mote-rise 4.4s ease-in-out infinite; }
+.animate-chest-refl { animation: chest-refl-drift 9s ease-in-out infinite; }
+.animate-chest-orb { animation: chest-orb 2.6s ease-in-out infinite; }
+
 .animate-ocean-shimmer { animation: ocean-shimmer 18s ease-in-out infinite; }
 .animate-caustic { animation: caustic-drift 14s ease-in-out infinite; }
 .animate-fog { animation: fog-drift 34s ease-in-out infinite alternate; }

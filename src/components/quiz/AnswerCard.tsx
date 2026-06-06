@@ -1,15 +1,19 @@
 import { useState, type PointerEvent } from 'react';
 import { motion } from 'framer-motion';
 import { useReducedMotionSafe } from '../../hooks/useReducedMotionSafe';
+import { easeOutSoft } from '../../lib/motion';
 
 const ICONS = ['⚔️', '🧭', '🗺️', '💰', '🏴‍☠️', '⚓'];
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-// Deterministic Haki spark vectors.
-const SPARKS = Array.from({ length: 8 }, (_, i) => {
-  const a = (i / 8) * Math.PI * 2;
-  return { x: Math.cos(a) * 42, y: Math.sin(a) * 42 };
-});
+// Deterministic gold embers that drift up off the chosen card, like sparks
+// rising from struck treasure. Spread across the card width, varied heights.
+const EMBERS = Array.from({ length: 7 }, (_, i) => ({
+  x: (i / 6 - 0.5) * 220,
+  rise: 46 + ((i * 13) % 28),
+  delay: (i % 4) * 0.05,
+  size: i % 2 ? 3 : 5,
+}));
 
 interface Props {
   index: number;
@@ -23,6 +27,9 @@ export function AnswerCard({ index, text, selected, disabled, onSelect }: Props)
   const reduce = useReducedMotionSafe();
   const [tilt, setTilt] = useState({ rx: 0, ry: 0, hovered: false });
   const [pressed, setPressed] = useState(false);
+
+  // When another card was chosen, this one fades back so the eye stays on the pick.
+  const dimmed = disabled && !selected;
 
   const onMove = (e: PointerEvent<HTMLButtonElement>) => {
     if (reduce || !window.matchMedia('(pointer: fine)').matches) return;
@@ -49,11 +56,21 @@ export function AnswerCard({ index, text, selected, disabled, onSelect }: Props)
       onPointerUp={() => setPressed(false)}
       aria-label={`${LETTERS[index]}: ${text}`}
       style={{ transformPerspective: 800 }}
-      animate={reduce ? { scale: pressed ? 0.98 : 1 } : { rotateX: tilt.rx, rotateY: tilt.ry, scale }}
+      animate={
+        reduce
+          ? { scale: pressed ? 0.98 : 1, opacity: dimmed ? 0.4 : 1 }
+          : {
+              rotateX: dimmed ? 0 : tilt.rx,
+              rotateY: dimmed ? 0 : tilt.ry,
+              scale: dimmed ? 0.96 : selected ? 1.03 : scale,
+              opacity: dimmed ? 0.4 : 1,
+              filter: dimmed ? 'saturate(0.55)' : 'saturate(1)',
+            }
+      }
       transition={{ type: 'spring', stiffness: 300, damping: 22 }}
       className={`glass group relative overflow-hidden rounded-2xl border p-4 text-start transition-shadow duration-300 disabled:cursor-default sm:p-5 ${
         selected
-          ? 'border-haki/70 shadow-haki'
+          ? 'border-gold/80 shadow-[0_0_0_1px_rgb(var(--gold)/0.5),0_14px_40px_-8px_rgb(var(--sunset)/0.55)]'
           : 'border-white/[0.12] hover:border-gold/40 hover:shadow-[0_12px_34px_-8px_rgba(0,0,0,0.6)]'
       }`}
     >
@@ -67,16 +84,29 @@ export function AnswerCard({ index, text, selected, disabled, onSelect }: Props)
         }}
       />
 
+      {/* Treasure-gold sheen that sweeps across the chosen card */}
+      {selected && !reduce && (
+        <motion.span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 w-1/2 rounded-2xl"
+          style={{
+            background:
+              'linear-gradient(105deg, transparent, rgb(var(--gold) / 0.45), transparent)',
+          }}
+          initial={{ x: '-130%' }}
+          animate={{ x: '260%' }}
+          transition={{ duration: 0.7, ease: easeOutSoft }}
+        />
+      )}
+
       <div className="relative z-10 flex items-start gap-3">
-        <span
-          className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold shadow-md ${
-            selected
-              ? 'bg-haki text-white'
-              : 'bg-gradient-to-br from-gold to-sunset text-ocean-deep'
-          }`}
+        <motion.span
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gold to-sunset text-sm font-bold text-ocean-deep shadow-md"
+          animate={selected && !reduce ? { scale: [1, 1.28, 1] } : { scale: 1 }}
+          transition={{ duration: 0.45, ease: easeOutSoft }}
         >
-          {LETTERS[index]}
-        </span>
+          {selected ? '✓' : LETTERS[index]}
+        </motion.span>
         <p className="pt-1 text-sm font-medium leading-relaxed text-cloud sm:text-base">{text}</p>
         <span
           aria-hidden
@@ -86,26 +116,34 @@ export function AnswerCard({ index, text, selected, disabled, onSelect }: Props)
         </span>
       </div>
 
-      {/* Haki selection burst */}
+      {/* Selection flourish: one clean Haki ring, then gold treasure embers rise. */}
       {selected && !reduce && (
         <>
           <motion.span
             aria-hidden
-            className="pointer-events-none absolute left-7 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full"
-            style={{ background: 'radial-gradient(circle, rgb(var(--haki) / 0.55), transparent 70%)' }}
-            initial={{ scale: 0.4, opacity: 0.9 }}
-            animate={{ scale: 2.6, opacity: 0 }}
-            transition={{ duration: 0.85, ease: 'easeOut' }}
+            className="pointer-events-none absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{ border: '2px solid rgb(var(--haki) / 0.85)' }}
+            initial={{ scale: 0.3, opacity: 0.9 }}
+            animate={{ scale: 7, opacity: 0 }}
+            transition={{ duration: 0.7, ease: easeOutSoft }}
           />
-          {SPARKS.map((s, i) => (
+          <motion.span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-2xl"
+            style={{ background: 'radial-gradient(circle at 50% 60%, rgb(var(--gold) / 0.28), transparent 70%)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 0] }}
+            transition={{ duration: 0.55, ease: easeOutSoft }}
+          />
+          {EMBERS.map((e, i) => (
             <motion.span
               key={i}
               aria-hidden
-              className="pointer-events-none absolute left-7 top-1/2 h-1 w-1 rounded-full bg-haki"
-              style={{ boxShadow: '0 0 6px rgb(var(--haki) / 0.9)' }}
-              initial={{ x: 0, y: 0, opacity: 1 }}
-              animate={{ x: s.x, y: s.y, opacity: 0 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="pointer-events-none absolute bottom-3 left-1/2 rounded-full bg-gold"
+              style={{ height: e.size, width: e.size, boxShadow: '0 0 8px rgb(var(--gold) / 0.95)' }}
+              initial={{ x: e.x, y: 0, opacity: 0, scale: 0.6 }}
+              animate={{ y: -e.rise, opacity: [0, 1, 0], scale: 1 }}
+              transition={{ duration: 0.7, delay: e.delay, ease: easeOutSoft }}
             />
           ))}
         </>
