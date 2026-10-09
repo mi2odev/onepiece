@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>One Piece Quiz Ad</title>
+<link rel="stylesheet" href="fonts.css" />
+<style>
+  /* Site design tokens (src/styles/index.css + tailwind.config.js) */
+  :root {
+    --ocean-deep: #061433; --ocean-grand: #0D2A73; --sunset: #FF8A00; --gold: #FFD54A;
+    --pirate-red: #D62B2B; --sea-foam: #7EE7C1; --cloud: #F5F5F5; --haki: #7C3AED;
+    --sky-top: #040A1C; --sky-horizon: #1C3A68; --sun-core: #FFE29C; --ink: #050B1C;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #061433; }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--ocean-deep); font-family: 'Poppins', sans-serif; color: var(--cloud); }
+  .abs { position: absolute; }
+  .fill { position: absolute; inset: 0; }
+  .scene { position: absolute; inset: 0; visibility: hidden; }
+  .display { font-family: 'Cinzel', Georgia, serif; font-weight: 900; text-transform: uppercase; line-height: 0.95; }
+  .deco { font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 900; }
+  .adventure { font-family: 'Bungee', cursive; }
+  .ui { font-family: 'Poppins', sans-serif; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3em; }
+  /* .text-fire / .text-gold-foil from the site */
+  .fire { background: linear-gradient(115deg, #ffd54a 0%, #ff8a00 42%, #ff4d4d 80%, #d62b2b 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .foil { background: linear-gradient(180deg, #fff4c2 0%, #ffd54a 38%, #f5a623 66%, #b8741a 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .poster-shadow { text-shadow: 0 2px 0 rgb(0 0 0 / 0.35), 0 8px 26px rgb(0 0 0 / 0.55); }
+  .ink-stroke { -webkit-text-stroke: 7px #050B1C; paint-order: stroke fill; }
+  .word { display: inline-block; will-change: transform, opacity; }
+  .halftone { background-image: radial-gradient(rgba(5,11,28,0.26) 3px, transparent 3.4px); background-size: 18px 18px; }
+  .rays {
+    position: absolute; left: 50%; top: 50%; width: 3400px; height: 3400px; margin: -1700px 0 0 -1700px;
+    background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,213,74,0.22) 0deg 3deg, transparent 3deg 12deg);
+    -webkit-mask-image: radial-gradient(circle, #000 8%, transparent 62%);
+  }
+  .speed {
+    position: absolute; left: 50%; top: 50%; width: 3200px; height: 3200px; margin: -1600px 0 0 -1600px;
+    background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(5,11,28,0.32) 0deg 1.3deg, transparent 1.3deg 5deg);
+    -webkit-mask-image: radial-gradient(circle, transparent 14%, #000 36%, #000 62%, transparent 74%);
+  }
+  .panel-img { position: absolute; max-width: none; }
+  .grain { opacity: 0.06; mix-blend-mode: overlay; background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.6) 0 1px, transparent 1px 3px); }
+  .flash { background: #fff; opacity: 0; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="world" class="fill">
+    <!-- ===== persistent world: the site's night ocean (OceanLayer / StarField / FogLayer / ParticleCanvas) ===== -->
+    <div id="sea" class="fill">
+      <div class="fill" style="background:linear-gradient(180deg, #040A1C 0%, #12204a 34%, #1C3A68 55%, #0D2A73 64%, #061433 100%);"></div>
+      <div class="fill" style="background:radial-gradient(60% 40% at 20% 14%, rgba(90,70,170,0.25), transparent 60%), radial-gradient(60% 40% at 85% 8%, rgba(40,120,150,0.22), transparent 60%);"></div>
+      <div id="stars" class="fill"></div>
+      <div id="moon" class="abs" style="left:800px;top:150px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle at 38% 34%, #fdf6e3 0%, #efe3bf 52%, #cdbf94 100%);box-shadow:0 0 80px 22px rgba(253,246,227,0.28), 0 0 200px 80px rgba(255,224,150,0.12);"></div>
+      <div class="abs" style="left:-500px;top:900px;width:2080px;height:420px;border-radius:50%;filter:blur(60px);background:radial-gradient(ellipse at center, rgba(255,138,0,0.18) 0%, rgba(255,138,0,0.05) 45%, transparent 70%);"></div>
+      <div id="islands" class="fill"></div>
+      <img id="ship" class="abs" src="../public/images/sunny.png" style="left:0;top:0;width:470px;" />
+      <div class="abs" style="left:0;right:0;top:1105px;bottom:0;overflow:hidden;">
+        <div id="moonPath" class="abs" style="left:805px;top:0;width:120px;height:800px;background:linear-gradient(180deg, rgba(253,246,227,0.45) 0%, rgba(253,246,227,0.12) 45%, transparent 85%);filter:blur(9px);mix-blend-mode:screen;"></div>
+        <div id="glints"></div>
+        <div class="fill" style="background:radial-gradient(120% 80% at 50% 120%, rgba(126,231,193,0.16), transparent 60%);mix-blend-mode:screen;"></div>
+      </div>
+      <div id="fog" class="fill"></div>
+    </div>
+    <div id="particles" class="fill"></div>
+
+    <!-- ===== S1: hook ===== -->
+    <div id="s1" class="scene">
+      <div id="s1a" class="abs display" style="left:0;right:0;top:340px;text-align:center;font-size:132px;"></div>
+      <div id="s1b" class="abs display" style="left:0;right:0;top:700px;text-align:center;font-size:76px;font-weight:700;line-height:1.15;"></div>
+    </div>
+
+    <!-- ===== S2: logo slam ===== -->
+    <div id="s2" class="scene">
+      <div id="s2rays" class="rays"></div>
+      <div id="s2sun" class="abs" style="left:-60px;top:250px;width:1200px;height:820px;border-radius:50%;filter:blur(60px);background:radial-gradient(ellipse at center, rgba(255,226,156,0.65) 0%, rgba(255,138,0,0.38) 45%, rgba(214,43,43,0.1) 70%, transparent 100%);"></div>
+      <div id="s2smoke" class="fill"></div>
+      <div id="s2ring" class="abs" style="left:540px;top:1340px;width:900px;height:900px;margin:-450px 0 0 -450px;border-radius:50%;border:10px solid rgba(255,213,74,0.85);box-shadow:0 0 60px rgba(255,138,0,0.7), inset 0 0 60px rgba(255,77,77,0.45);"></div>
+      <img id="s2logo" class="abs" src="../public/images/logo.png" style="left:110px;top:380px;width:860px;" />
+      <div id="s2q1" class="abs display poster-shadow" style="left:0;right:0;top:1130px;text-align:center;font-size:80px;white-space:nowrap;"></div>
+      <div id="s2q2" class="abs deco fire" style="left:0;right:0;top:1250px;text-align:center;font-size:170px;white-space:nowrap;line-height:1.05;"></div>
+    </div>
+
+    <!-- ===== S3: character montage ===== -->
+    <div id="s3" class="scene"></div>
+
+    <!-- ===== S4: stats ===== -->
+    <div id="s4" class="scene">
+      <div id="s4rays" class="rays"></div>
+      <div id="s4kick" class="abs ui" style="left:0;right:0;top:140px;text-align:center;font-size:30px;color:var(--gold);">One Piece · Personality Test</div>
+      <div id="s4rows" class="fill"></div>
+      <div id="s4strip" class="abs" style="left:0;top:1500px;height:360px;width:5000px;"></div>
+    </div>
+
+    <!-- ===== S5: call to action ===== -->
+    <div id="s5" class="scene">
+      <div id="s5grid" class="abs" style="left:-80px;top:-60px;width:1240px;height:2040px;"></div>
+      <div class="fill" style="background:linear-gradient(180deg, rgba(6,20,51,0.35) 0%, rgba(6,20,51,0.93) 22%, rgba(6,20,51,0.93) 80%, rgba(6,20,51,0.4) 100%);"></div>
+      <div id="s5rays" class="rays" style="top:42%;"></div>
+      <img id="s5logo" class="abs" src="../public/images/logo.png" style="left:270px;top:330px;width:540px;" />
+      <div id="s5kick" class="abs ui" style="left:0;right:0;top:790px;text-align:center;font-size:30px;color:var(--sea-foam);">Chapter One · The Departure</div>
+      <div id="s5title" class="abs display" style="left:40px;right:40px;top:860px;text-align:center;font-size:92px;line-height:1.1;white-space:nowrap;"></div>
+      <div id="s5cta" class="abs" style="left:100px;width:880px;top:1170px;height:170px;"></div>
+      <div id="s5url" class="abs" style="left:0;right:0;top:1400px;text-align:center;font-size:56px;font-weight:600;letter-spacing:0.02em;">onepiecemi2o.netlify.app</div>
+      <div id="s5meta" class="abs ui" style="left:0;right:0;top:1490px;text-align:center;font-size:26px;letter-spacing:0.18em;color:rgba(245,245,245,0.7);font-weight:600;">Free · 24 Questions · 10 Characters · EN / AR</div>
+    </div>
+
+    <div class="fill" style="background:radial-gradient(120% 100% at 50% 40%, transparent 52%, rgba(3,8,22,0.7) 100%);"></div>
+  </div>
+
+  <!-- ===== S6: "WANTED: YOU" outro (outside world so the freeze-tint doesn't touch it) ===== -->
+  <div id="s6" class="fill" style="visibility:hidden;">
+    <div id="poster" class="abs" style="left:190px;top:200px;width:700px;"></div>
+    <div id="s6tag" class="abs" style="left:0;right:0;top:1330px;text-align:center;">
+      <div class="display fire poster-shadow" style="font-size:84px;line-height:1.05;">Find your bounty</div>
+      <div style="margin-top:26px;font-size:50px;font-weight:600;">onepiecemi2o.netlify.app</div>
+    </div>
+  </div>
+
+  <div class="fill grain"></div>
+  <div id="flash" class="fill flash"></div>
+</div>
+
+<script>
+// ---------------------------------------------------------------
+// Deterministic timeline: window.render(t) draws the frame at t (s).
+// Scene times come from timeline.json (injected by render.mjs).
+// ---------------------------------------------------------------
+const T = window.TIMELINE || {
+  s1: [0, 5.003], s2: [5.003, 8.397], s3: [8.397, 19.709], s4: [19.709, 24.8], s5: [24.8, 28.759], s6: [28.759, 30.6],
+  s1w1: 0.6, s1w2: 2.25, s2q1: 5.303, s2slam: 6.7, s4hits: [20.275, 21.971, 23.668], beat: 0.566, DUR: 30.6,
+};
+const cl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const p = (t, a, b) => cl((t - a) / (b - a));
+const eo = x => 1 - Math.pow(1 - x, 3);
+const eio = x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const eb = x => { const c1 = 2.2, c3 = c1 + 1; return x <= 0 ? 0 : 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+const shake = (t, amp, f = 1) => amp * Math.sin(t * 91.7 * f) * Math.cos(t * 53.3 * f);
+const $ = id => document.getElementById(id);
+const el = (tag, cls, style, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (style) e.style.cssText = style; if (html != null) e.innerHTML = html; return e; };
+const rnd = (i, k = 1) => { const s = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return s - Math.floor(s); };
+
+// Character data from src/data/questions.ts (name, title, colour) and src/data/lore.ts (quote).
+const CHARS = [
+  { pre: 'Monkey D.', name: 'Luffy', title: 'Captain & Dreamer', color: '#DC143C', img: 'luffy.png', quote: "I'm gonna be King of the Pirates!" },
+  { pre: 'Roronoa', name: 'Zoro', title: 'First Mate & Swordsman', color: '#228B22', img: 'zoro.jpg', quote: 'Nothing happened.' },
+  { pre: '', name: 'Nami', title: 'Navigator & Strategist', color: '#FF8C00', img: 'nami.jpg', quote: 'I can draw a map of the entire world!' },
+  { pre: '', name: 'Sanji', title: 'Cook & Gentleman', color: '#FFD700', img: 'sanji.jpg', quote: 'A real cook never wastes food.' },
+  { pre: '', name: 'Usopp', title: 'Sniper & Storyteller', color: '#DEB887', img: 'usoop.jpg', quote: 'I have a disease that only courage can cure!' },
+  { pre: 'Tony Tony', name: 'Chopper', title: 'Doctor & Heart of the Crew', color: '#FFB6C1', img: 'chopper.jpg', quote: 'Being called a monster is a compliment!' },
+  { pre: 'Nico', name: 'Robin', title: 'Archaeologist & Scholar', color: '#9370DB', img: 'robin.jpg', quote: 'I want to live.' },
+  { pre: '', name: 'Franky', title: 'Shipwright & Inventor', color: '#00CED1', img: 'franky.jpg', quote: 'SUPER!' },
+  { pre: '', name: 'Brook', title: 'Musician & Soul King', color: '#2F4F4F', img: 'brook.jpg', quote: 'Yohohoho!' },
+  { pre: '', name: 'Jinbe', title: 'Helmsman & Wise Counsel', color: '#4682B4', img: 'jinbe.jpg', quote: 'I will repay this debt with my life.' },
+];
+const IMG = f => '../public/images/' + f;
+// The art is a wanted poster; this rect (fractions of the image) is the portrait inside it.
+const CROP = [0.105, 0.228, 0.895, 0.622];
+const fitCrop = (img, W, H) => {
+  const w = img.naturalWidth, h = img.naturalHeight;
+  const cw = (CROP[2] - CROP[0]) * w, ch = (CROP[3] - CROP[1]) * h;
+  const s = Math.max(W / cw, H / ch);
+  img.style.width = `${w * s}px`; img.style.height = `${h * s}px`;
+  img.style.left = `${-CROP[0] * w * s - (cw * s - W) / 2}px`;
+  img.style.top = `${-CROP[1] * h * s - (ch * s - H) / 2}px`;
+};
+
+// ---------- build: world ----------
+const STARS = [...Array(90)].map((_, i) => {
+  const sz = 1.5 + rnd(i, 3) * 3.2;
+  const e = el('div', 'abs', `left:${rnd(i) * 1080}px;top:${rnd(i, 2) * 980}px;width:${sz}px;height:${sz}px;border-radius:50%;background:#fff;box-shadow:0 0 ${sz * 3}px rgba(255,255,255,0.8);`);
+  $('stars').appendChild(e); return { e, ph: rnd(i, 4) * 6.28, sp: 1 + rnd(i, 5) * 3 };
+});
+// Island silhouettes on the horizon (IslandSilhouettes)
+$('islands').innerHTML = `<svg class="abs" style="left:0;top:960px" width="1080" height="160" viewBox="0 0 1080 160">
+  <path d="M-10 160 L-10 120 C 60 70, 120 40, 190 92 C 230 60, 270 74, 320 118 L 360 160 Z" fill="#0a1736" opacity="0.9"/>
+  <path d="M640 160 C 700 120, 760 70, 830 96 C 880 52, 950 64, 1000 104 C 1040 90, 1070 110, 1090 130 L1090 160 Z" fill="#0b1a3e" opacity="0.85"/>
+</svg>`;
+const GLINTS = [8, 22, 40, 62].map((top, i) => { const e = el('div', 'abs', `left:-200px;right:-200px;top:${top}%;height:3px;opacity:0.3;background:linear-gradient(90deg, transparent, rgba(126,231,193,0.6) 40%, rgba(126,231,193,0.6) 60%, transparent);filter:blur(1.5px);`); $('glints').appendChild(e); return e; });
+const FOG = [0, 1, 2, 3].map(i => { const e = el('div', 'abs', `left:${-300 + i * 340}px;top:${880 + (i % 2) * 140}px;width:900px;height:300px;border-radius:50%;background:rgba(200,215,255,0.09);filter:blur(50px);`); $('fog').appendChild(e); return e; });
+// Rising motes: gold dust, sea-foam motes, warm embers (ParticleCanvas / chest motes)
+const MOTE = ['#FFD54A', '#7EE7C1', '#FFB066'];
+const PARTS = [...Array(44)].map((_, i) => {
+  const c = MOTE[i % 3], sz = 4 + (i * 7) % 9;
+  const e = el('div', 'abs', `width:${sz}px;height:${sz}px;border-radius:50%;background:${c};box-shadow:0 0 ${sz * 2}px ${c};`);
+  $('particles').appendChild(e);
+  return { e, x: rnd(i, 7) * 1080, y0: rnd(i, 8) * 1920, sp: 40 + rnd(i, 9) * 110, ph: i * 1.7 };
+});
+
+// ---------- build: S1 ----------
+const s1Words = ['EVERY', 'GREAT', '<span class="fire">PIRATE...</span>'].map(w => { const e = el('div', 'word poster-shadow', 'display:block;', w); $('s1a').appendChild(e); return e; });
+const s1Words2 = ['begins with', '<span class="foil">one question.</span>'].map(w => { const e = el('div', 'word poster-shadow', 'display:block;text-transform:none;', w); $('s1b').appendChild(e); return e; });
+
+// ---------- build: S2 ----------
+const SMOKE = [0, 1, 2, 3, 4].map(i => { const e = el('div', 'abs', `left:${120 + i * 180}px;top:560px;width:340px;height:340px;border-radius:50%;background:rgba(255,255,255,0.14);filter:blur(40px);`); $('s2smoke').appendChild(e); return e; });
+$('s2q1').innerHTML = 'Which <span class="foil">Straw Hat</span>';
+$('s2q2').textContent = 'ARE YOU?';
+
+// ---------- build: S3 ----------
+const PW = 940, PH = 800;
+const PANELS = CHARS.map((c, i) => {
+  const root = el('div', 'fill', `visibility:hidden;background:${c.color};`);
+  root.innerHTML = `
+    <div class="fill" style="background:linear-gradient(165deg, rgba(255,255,255,0.22) 0%, rgba(0,0,0,0) 38%, rgba(6,20,51,0.78) 100%);"></div>
+    <div class="fill halftone"></div>
+    <div class="speed" data-k="speed"></div>
+    <div class="abs display" data-k="num" style="right:-30px;top:1000px;font-size:640px;color:transparent;-webkit-text-stroke:5px rgba(5,11,28,0.28);">${String(i + 1).padStart(2, '0')}</div>
+    <div class="abs" data-k="slab" style="left:-200px;top:1060px;width:1600px;height:1100px;background:#061433;transform:rotate(-7deg);transform-origin:0 0;"></div>
+    <div class="abs" data-k="frame" style="left:70px;top:210px;width:${PW}px;height:${PH}px;">
+      <div class="fill" style="background:#050B1C;clip-path:polygon(4% 0,100% 0,96% 100%,0 100%);transform:translate(18px,18px);"></div>
+      <div class="fill" style="background:#F5F5F5;clip-path:polygon(4% 0,100% 0,96% 100%,0 100%);"></div>
+      <div class="fill" style="background:#050B1C;clip-path:polygon(4.9% 1.4%,98.7% 1.4%,95.1% 98.6%,1.3% 98.6%);"></div>
+      <div class="fill" style="clip-path:polygon(5.6% 2.2%,97.8% 2.2%,94.4% 97.8%,2.2% 97.8%);overflow:hidden;background:#111;">
+        <img class="panel-img" data-k="img" src="${IMG(c.img)}" />
+      </div>
+    </div>
+    <div class="abs ui" data-k="kick" style="left:70px;top:112px;font-size:26px;color:var(--cloud);background:#061433;padding:10px 22px;box-shadow:6px 6px 0 rgba(5,11,28,0.5);">Straw Hat Pirates</div>
+    <div class="abs ui" data-k="count" style="right:70px;top:112px;font-size:26px;letter-spacing:0.12em;color:var(--gold);background:#061433;padding:10px 20px;">${String(i + 1).padStart(2, '0')} / 10</div>
+    <div class="abs ui" data-k="title" style="left:70px;top:1080px;font-size:30px;letter-spacing:0.16em;color:#061433;background:var(--gold);padding:10px 24px;box-shadow:7px 7px 0 #050B1C;">${c.title}</div>
+    <div class="abs display" data-k="pre" style="left:74px;top:1170px;font-size:64px;font-weight:700;color:var(--gold);" >${c.pre}</div>
+    <div class="abs display ink-stroke" data-k="name" style="left:66px;top:${c.pre ? 1236 : 1180}px;font-size:${c.name.length > 6 ? 158 : 210}px;color:var(--cloud);text-shadow:10px 10px 0 ${c.color};">${c.name}</div>
+    <div class="abs" data-k="bubble" style="left:70px;right:70px;top:${c.pre ? 1490 : 1460}px;transform-origin:20% 0%;">
+      <div style="position:relative;background:#fff;border:7px solid #050B1C;border-radius:46px;padding:30px 40px;box-shadow:10px 10px 0 rgba(5,11,28,0.55);">
+        <div style="position:absolute;left:90px;top:-58px;width:70px;height:62px;background:#050B1C;clip-path:polygon(0 0,100% 100%,30% 100%);"></div>
+        <div style="position:absolute;left:99px;top:-40px;width:52px;height:50px;background:#fff;clip-path:polygon(0 0,100% 100%,30% 100%);"></div>
+        <div class="adventure" style="font-size:${c.quote.length > 30 ? 46 : 58}px;line-height:1.15;color:#061433;text-align:center;">“${c.quote}”</div>
+      </div>
+    </div>
+  `;
+  $('s3').appendChild(root);
+  const q = k => root.querySelector(`[data-k="${k}"]`);
+  return { root, c, q: Object.fromEntries(['speed', 'num', 'slab', 'frame', 'img', 'kick', 'count', 'title', 'pre', 'name', 'bubble'].map(k => [k, q(k)])) };
+});
+
+// ---------- build: S4 ----------
+const S4ROWS = [
+  { big: '24', label: 'QUESTIONS', size: 78, color: '#D62B2B', y: 250 },
+  { big: '10', label: 'STRAW HAT<br/>CHARACTERS', size: 68, color: '#FF8A00', y: 650 },
+  { big: '1', label: 'DESTINY', size: 124, color: '#7EE7C1', y: 1050 },
+].map((r, i) => {
+  const e = el('div', 'abs', `left:0;right:0;top:${r.y}px;height:360px;`);
+  const two = r.label.includes('<br');
+  e.innerHTML = `
+    <div data-k="bar" style="position:absolute;left:-60px;right:-60px;top:50px;height:270px;background:${r.color};transform:skewY(-5deg);box-shadow:0 14px 0 #050B1C;"></div>
+    <div data-k="ht" class="halftone" style="position:absolute;left:-60px;right:-60px;top:50px;height:270px;transform:skewY(-5deg);"></div>
+    <div data-k="big" class="display ink-stroke" style="position:absolute;left:${i === 2 ? 110 : 50}px;top:${i === 0 ? 20 : 0}px;font-size:${i === 0 ? 310 : 340}px;color:#F5F5F5;text-shadow:12px 12px 0 #050B1C;">${r.big}</div>
+    <div data-k="lab" class="display" style="position:absolute;left:${i === 2 ? 380 : i === 0 ? 520 : 470}px;top:${two ? 112 : 135}px;font-size:${r.size}px;color:#061433;line-height:1.02;">${r.label}</div>`;
+  $('s4rows').appendChild(e);
+  return { e, bar: e.querySelector('[data-k="bar"]'), ht: e.querySelector('[data-k="ht"]'), big: e.querySelector('[data-k="big"]'), lab: e.querySelector('[data-k="lab"]') };
+});
+const posterTile = (c, w, h, extra = '') => `<div class="abs" style="${extra}width:${w}px;height:${h}px;padding:6px;border-radius:8px;background:linear-gradient(150deg,#fff0b8 0%,#e7bd5e 38%,#bb8420 60%,#8a6016 100%);box-shadow:0 18px 30px -10px rgba(0,0,0,0.75);"><img src="${IMG(c.img)}" style="display:block;width:100%;height:100%;object-fit:cover;border-radius:4px;"/></div>`;
+[...CHARS, ...CHARS, ...CHARS].forEach((c, i) => { $('s4strip').insertAdjacentHTML('beforeend', posterTile(c, 236, 340, `left:${i * 262}px;top:0;`)); });
+
+// ---------- build: S5 ----------
+const GRID = [];
+for (let r = 0; r < 5; r++) for (let k = 0; k < 4; k++) {
+  const i = r * 4 + k, c = CHARS[(i * 3) % 10];
+  $('s5grid').insertAdjacentHTML('beforeend', posterTile(c, 290, 400, `left:${k * 310 + (r % 2) * 40}px;top:${r * 420}px;`));
+  GRID.push($('s5grid').lastElementChild);
+}
+$('s5title').innerHTML = '<span class="word fire">Discover</span> <span class="word fire">Your</span><br/><span class="word fire">Pirate</span> <span class="word fire">Destiny</span>';
+const S5W = [...$('s5title').querySelectorAll('.word')];
+const compass = `<svg viewBox="-50 -50 100 100" width="58" height="58"><circle r="44" fill="none" stroke="#fff4c2" stroke-width="6"/><polygon points="0,-38 9,0 0,38 -9,0" fill="#fff4c2"/><polygon points="-38,0 0,-7 38,0 0,7" fill="#fff4c2" opacity="0.7"/></svg>`;
+$('s5cta').innerHTML = `
+  <div data-k="halo" style="position:absolute;inset:-34px;border-radius:999px;background:rgba(255,120,40,0.55);filter:blur(42px);"></div>
+  <div style="position:absolute;inset:0;border-radius:999px;background:linear-gradient(110deg,#ffb347 0%,#ff7a33 30%,#ff4733 58%,#ff1d66 88%);box-shadow:0 4px 18px rgb(0 0 0 / 0.55), 0 0 26px 6px rgb(255 150 40 / 0.38), 0 0 48px 16px rgb(255 90 30 / 0.22), inset 0 2px 0 rgba(255,255,255,0.45);overflow:hidden;display:flex;align-items:center;justify-content:center;gap:26px;">
+    <div data-k="sweep" style="position:absolute;top:-30px;bottom:-30px;width:200px;background:rgba(255,255,255,0.45);filter:blur(18px);transform:skewX(-18deg);"></div>
+    ${compass}
+    <span class="display" style="white-space:nowrap;font-size:54px;color:#fff;letter-spacing:0.04em;text-shadow:0 3px 0 rgba(120,20,0,0.45), 0 8px 22px rgba(0,0,0,0.35);">Begin Your Journey</span>
+  </div>`;
+const CTA = { halo: $('s5cta').querySelector('[data-k="halo"]'), sweep: $('s5cta').querySelector('[data-k="sweep"]') };
+const SPARK = [...Array(14)].map((_, i) => {
+  const e = el('div', 'abs', `left:${100 + rnd(i, 11) * 880}px;top:${1150 + rnd(i, 12) * 210}px;width:34px;height:34px;`,
+    `<svg viewBox="-10 -10 20 20" width="34" height="34"><path d="M0 -10 L2 -2 L10 0 L2 2 L0 10 L-2 2 L-10 0 L-2 -2 Z" fill="#fff4c2"/></svg>`);
+  $('s5').appendChild(e); return { e, d: rnd(i, 13) * 1.2 };
+});
+
+// ---------- build: S6 (WANTED: YOU) ----------
+$('poster').innerHTML = `
+  <div style="padding:12px;border-radius:16px;background:linear-gradient(150deg,#fff0b8 0%,#e7bd5e 38%,#bb8420 60%,#8a6016 100%);box-shadow:0 50px 90px -20px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(255,255,255,0.45);">
+    <div style="position:relative;overflow:hidden;border-radius:8px;padding:30px 40px 34px;background:radial-gradient(120% 120% at 30% 10%, #f6e4bd 0%, #ecd29a 45%, #d8b871 100%);color:#3a2614;text-align:center;">
+      <div class="display" style="font-size:118px;letter-spacing:0.02em;">Wanted</div>
+      <div style="position:relative;margin:18px auto 0;width:540px;height:420px;border:6px solid #3a2614;background:linear-gradient(180deg,#1C3A68 0%,#0D2A73 55%,#061433 100%);overflow:hidden;">
+        <svg viewBox="0 0 560 430" width="560" height="430" style="position:absolute;inset:0">
+          <ellipse cx="280" cy="150" rx="150" ry="34" fill="#E8C66A"/><path d="M190 150 Q195 70 280 66 Q365 70 370 150 Z" fill="#E8C66A"/><rect x="190" y="126" width="180" height="20" fill="#D62B2B"/>
+          <path d="M150 430 Q160 300 280 290 Q400 300 410 430 Z" fill="#050B1C"/><circle cx="280" cy="225" r="80" fill="#050B1C"/>
+          <ellipse cx="280" cy="164" rx="150" ry="34" fill="#E8C66A"/><path d="M200 162 Q205 84 280 80 Q355 84 360 162 Z" fill="#E8C66A"/><rect x="200" y="138" width="160" height="22" fill="#D62B2B"/>
+        </svg>
+        <div class="display" style="position:absolute;left:0;right:0;top:200px;font-size:170px;color:var(--gold);text-shadow:0 0 30px rgba(255,213,74,0.6);">?</div>
+        <div data-k="sweep" style="position:absolute;top:0;bottom:0;width:180px;background:linear-gradient(105deg,transparent,rgba(255,255,255,0.55),transparent);"></div>
+      </div>
+      <div class="display" style="margin-top:22px;font-size:52px;font-weight:700;letter-spacing:0.12em;">Dead or Alive</div>
+      <div class="display" style="margin-top:8px;font-size:130px;">You</div>
+      <div class="display" style="margin-top:12px;font-size:48px;font-weight:700;letter-spacing:0.04em;">Bounty ???,???,???-</div>
+      <div class="display" style="position:absolute;right:40px;bottom:16px;font-size:30px;">Marine</div>
+    </div>
+  </div>`;
+const POSTER_SWEEP = $('poster').querySelector('[data-k="sweep"]');
+
+// ---------------------------------------------------------------
+function show(id, on) { $(id).style.visibility = on ? 'visible' : 'hidden'; }
+const inS = (t, k) => t >= T[k][0] && t < T[k][1];
+
+window.render = function (t) {
+  const tf = Math.min(t, T.s6[0] + 0.12);   // picture freezes behind the WANTED poster
+  let camShake = 0, flash = 0;
+
+  // ---- world ----
+  STARS.forEach(s => { s.e.style.opacity = 0.35 + 0.45 * (0.5 + 0.5 * Math.sin(tf * s.sp + s.ph)); });
+  $('moon').style.transform = `translateY(${-tf * 3}px)`;
+  $('moon').style.visibility = tf < T.s3[0] ? 'visible' : 'hidden';
+  GLINTS.forEach((g, i) => { g.style.transform = `translateX(${Math.sin(tf * 0.6 + i * 2) * 140}px)`; });
+  $('moonPath').style.opacity = 0.75 + 0.25 * Math.sin(tf * 2.3);
+  FOG.forEach((f, i) => { f.style.transform = `translateX(${((tf * (18 + i * 6) + i * 300) % 1700) - 500}px)`; });
+  PARTS.forEach(o => {
+    const y = ((o.y0 - tf * o.sp) % 1920 + 1920) % 1920;
+    o.e.style.transform = `translate(${o.x + Math.sin(tf * 1.3 + o.ph) * 30}px, ${y}px)`;
+    o.e.style.opacity = 0.3 + 0.35 * Math.sin(tf * 3 + o.ph);
+  });
+  // The Thousand Sunny, dark against the moonlit horizon, sails through the hook.
+  const shipOn = tf < T.s2[0];
+  $('ship').style.visibility = shipOn ? 'visible' : 'hidden';
+  if (shipOn) {
+    const bob = Math.sin(tf * 2.1) * 6;
+    $('ship').style.transform = `translate(${lerp(-80, 330, tf / T.s2[0])}px, ${860 + bob}px) rotate(${Math.sin(tf * 1.6) * 1.6}deg)`;
+    $('ship').style.filter = `brightness(${lerp(0.05, 0.16, p(tf, 0, 4.5))}) saturate(0.4) drop-shadow(0 0 30px rgba(253,246,227,0.18))`;
+  }
+  $('sea').style.filter = `brightness(${lerp(0.55, 1, eo(p(tf, 0, 1.2)))})`;
+  $('sea').style.transform = `scale(${1.08 - 0.08 * eo(p(tf, 0, T.s2[0]))})`;
+
+  // ===== S1: hook =====
+  show('s1', inS(tf, 's1'));
+  if (inS(tf, 's1')) {
+    const u = tf - T.s1[0];
+    s1Words.forEach((w, i) => {
+      const a = eo(p(u, T.s1w1 + i * 0.36, T.s1w1 + 0.55 + i * 0.36));
+      w.style.opacity = a; w.style.transform = `translateY(${(1 - a) * 80}px) scale(${lerp(1.25, 1, a)})`;
+      w.style.filter = `blur(${(1 - a) * 14}px)`;
+    });
+    s1Words2.forEach((w, i) => {
+      const a = eo(p(u, T.s1w2 + i * 0.6, T.s1w2 + 0.65 + i * 0.6));
+      w.style.opacity = a; w.style.transform = `translateY(${(1 - a) * 40}px)`;
+      w.style.letterSpacing = `${lerp(0.25, 0, a)}em`;
+    });
+    const dur = T.s1[1] - T.s1[0];
+    const out = p(u, dur - 0.3, dur);
+    $('s1').style.opacity = 1 - out;
+    $('s1').style.transform = `scale(${1 + u * 0.012 + out * 0.3})`;
+    camShake += u > 3.6 ? 2.5 * p(u, 3.6, dur) : 0;
+  }
+
+  // ===== S2: logo crash + "WHICH STRAW HAT ARE YOU?" on the drop =====
+  show('s2', inS(tf, 's2'));
+  if (inS(tf, 's2')) {
+    const u = tf - T.s2[0];
+    flash = Math.max(flash, 0.9 * (1 - p(u, 0, 0.3)));
+    camShake += u < 0.45 ? 20 * (1 - u / 0.45) : 0;
+    const lg = eb(p(u, 0, 0.42));
+    $('s2logo').style.opacity = cl(lg * 2);
+    $('s2logo').style.transform = `scale(${lerp(2.8, 1, lg)}) rotate(${(1 - lg) * -9}deg) translateY(${Math.sin(u * 2.4) * 6}px)`;
+    $('s2logo').style.filter = `drop-shadow(0 6px 22px rgba(0,0,0,0.6)) drop-shadow(0 0 40px rgba(255,170,40,${0.35 + 0.15 * Math.sin(u * 6)}))`;
+    $('s2sun').style.opacity = 0.85 * eo(p(u, 0, 0.8));
+    $('s2sun').style.transform = `translateY(${(1 - eo(p(u, 0, 1.2))) * 120}px) scale(${1 + 0.04 * Math.sin(u * 3)})`;
+    $('s2rays').style.transform = `rotate(${u * 14}deg)`;
+    $('s2rays').style.opacity = 0.9 * eo(p(u, 0, 0.6));
+    SMOKE.forEach((s, i) => { const k = p(u, 0.05 + i * 0.05, 1.5 + i * 0.1); s.style.opacity = 0.7 * (1 - k); s.style.transform = `translate(${(i - 2) * 60 * k}px, ${-60 * k}px) scale(${lerp(0.6, 1.9, k)})`; });
+    const q1 = eo(p(u, T.s2q1 - T.s2[0], T.s2q1 - T.s2[0] + 0.45));
+    $('s2q1').style.opacity = q1; $('s2q1').style.transform = `translateY(${(1 - q1) * 70}px)`;
+    $('s2q1').style.letterSpacing = `${lerp(0.3, 0.02, q1)}em`;
+    const sl = T.s2slam - T.s2[0];
+    const q2 = eb(p(u, sl, sl + 0.3));
+    $('s2q2').style.opacity = cl(q2 * 3);
+    $('s2q2').style.transform = `scale(${lerp(3.6, 1, q2) * (1 + 0.02 * Math.sin(u * 9))}) rotate(${(1 - q2) * 7 - 2}deg)`;
+    $('s2q2').style.filter = `drop-shadow(8px 8px 0 #050B1C) drop-shadow(0 0 30px rgba(255,90,30,0.55))`;
+    const rg = p(u, sl, sl + 0.7);
+    $('s2ring').style.opacity = u > sl ? (1 - rg) : 0;
+    $('s2ring').style.transform = `scale(${lerp(0.2, 2.2, eo(rg))})`;
+    if (u > sl && u < sl + 0.5) camShake += 26 * (1 - p(u, sl, sl + 0.5));
+    if (u > sl) flash = Math.max(flash, 0.95 * (1 - p(u, sl, sl + 0.22)));
+    const dur = T.s2[1] - T.s2[0];
+    const out = p(u, dur - 0.18, dur);
+    $('s2').style.opacity = 1 - out;
+    $('s2').style.transform = `scale(${1 + u * 0.015 + out * 0.5})`;
+  }
+
+  // ===== S3: montage — one Straw Hat per 2-beat cut =====
+  show('s3', inS(tf, 's3'));
+  if (!inS(tf, 's3')) PANELS.forEach(P => { P.root.style.visibility = 'hidden'; });
+  if (inS(tf, 's3')) {
+    const per = (T.s3[1] - T.s3[0]) / CHARS.length;
+    const idx = Math.min(CHARS.length - 1, Math.floor((tf - T.s3[0]) / per));
+    PANELS.forEach((P, i) => {
+      P.root.style.visibility = i === idx ? 'visible' : 'hidden';
+      if (i !== idx) return;
+      const u = tf - T.s3[0] - i * per, q = P.q, dir = i % 2 ? -1 : 1;
+      flash = Math.max(flash, 0.55 * (1 - p(u, 0, 0.1)));
+      camShake += u < 0.2 ? 9 * (1 - u / 0.2) : 0;
+      q.speed.style.transform = `rotate(${u * 26 * dir}deg)`;
+      q.num.style.transform = `translateX(${(1 - eo(p(u, 0, 0.4))) * 260 * dir}px)`;
+      q.slab.style.transform = `rotate(-7deg) translateX(${(1 - eo(p(u, 0, 0.22))) * -1600}px)`;
+      const fr = eb(p(u, 0, 0.3));
+      q.frame.style.transform = `translateX(${(1 - fr) * 1100 * dir}px) rotate(${(1 - fr) * 8 * dir}deg)`;
+      q.img.style.transform = `scale(${lerp(1.16, 1.03, eio(p(u, 0, per)))})`;
+      q.img.style.transformOrigin = '50% 40%';
+      const k = eo(p(u, 0.06, 0.26));
+      q.kick.style.opacity = k; q.count.style.opacity = k;
+      const ti = eo(p(u, 0.1, 0.3));
+      q.title.style.opacity = ti; q.title.style.transform = `translateX(${(1 - ti) * -500}px)`;
+      const pr = eo(p(u, 0.12, 0.32));
+      q.pre.style.opacity = pr; q.pre.style.transform = `translateX(${(1 - pr) * -600}px)`;
+      const nm = eo(p(u, 0.08, 0.3));
+      q.name.style.transform = `translateX(${(1 - nm) * -1000}px)`;
+      const bb = eb(p(u, 0.22, 0.42));
+      q.bubble.style.opacity = cl(bb * 3);
+      q.bubble.style.transform = `scale(${lerp(0.4, 1, bb)}) rotate(${(1 - bb) * -4}deg)`;
+      const out = p(u, per - 0.08, per);
+      P.root.style.transform = `scale(${1 + out * 0.18})`;
+    });
+  }
+
+  // ===== S4: stats =====
+  show('s4', inS(tf, 's4'));
+  if (inS(tf, 's4')) {
+    const u = tf - T.s4[0];
+    $('s4rays').style.transform = `rotate(${-u * 10}deg)`; $('s4rays').style.opacity = 0.55;
+    const kk = eo(p(u, 0.05, 0.5)); $('s4kick').style.opacity = kk; $('s4kick').style.letterSpacing = `${lerp(0.6, 0.3, kk)}em`;
+    S4ROWS.forEach((r, i) => {
+      const h = T.s4hits[i] - T.s4[0];
+      const b = eo(p(u, h - 0.12, h + 0.14));
+      r.bar.style.transform = `skewY(-5deg) translateX(${(1 - b) * (i % 2 ? 1300 : -1300)}px)`;
+      r.ht.style.transform = r.bar.style.transform;
+      const bg = eb(p(u, h, h + 0.28));
+      r.big.style.opacity = cl(bg * 3);
+      r.big.style.transform = `scale(${lerp(2.8, 1, bg)}) rotate(${(1 - bg) * -10}deg)`;
+      const lb = eo(p(u, h + 0.1, h + 0.38));
+      r.lab.style.opacity = lb; r.lab.style.transform = `translateX(${(1 - lb) * 200}px)`;
+      if (u > h && u < h + 0.3) { camShake += 15 * (1 - p(u, h, h + 0.3)); flash = Math.max(flash, 0.4 * (1 - p(u, h, h + 0.14))); }
+    });
+    const st = eo(p(u, 0.1, 0.7));
+    $('s4strip').style.transform = `translateX(${-u * 170 - 200}px) translateY(${(1 - st) * 420}px) rotate(-3deg)`;
+    const dur = T.s4[1] - T.s4[0];
+    const out = p(u, dur - 0.2, dur);
+    $('s4').style.opacity = 1 - out;
+    $('s4').style.transform = `scale(${1 + out * 0.45})`;
+  }
+
+  // ===== S5: call to action =====
+  show('s5', tf >= T.s5[0]);
+  if (tf >= T.s5[0]) {
+    const u = tf - T.s5[0];
+    flash = Math.max(flash, 0.7 * (1 - p(u, 0, 0.22)));
+    camShake += u < 0.3 ? 12 * (1 - u / 0.3) : 0;
+    $('s5grid').style.transform = `scale(${lerp(1.2, 1.04, eo(p(u, 0, 4)))}) rotate(${lerp(-4, -2, eo(p(u, 0, 2)))}deg) translateY(${-u * 14}px)`;
+    GRID.forEach((g, i) => {
+      const a = eb(p(u, i * 0.035, i * 0.035 + 0.38));
+      g.style.opacity = cl(a * 2);
+      g.style.transform = `scale(${lerp(0.4, 1, a)}) rotate(${(1 - a) * (i % 2 ? 14 : -14) + (i % 3 - 1) * 2}deg)`;
+    });
+    $('s5rays').style.transform = `rotate(${u * 9}deg)`; $('s5rays').style.opacity = 0.5;
+    const lg = eb(p(u, 0.25, 0.75));
+    $('s5logo').style.opacity = cl(lg * 2);
+    $('s5logo').style.transform = `scale(${lerp(0.3, 1, lg)}) translateY(${Math.sin(u * 2.2) * 8}px)`;
+    $('s5logo').style.filter = 'drop-shadow(0 6px 22px rgba(0,0,0,0.6)) drop-shadow(0 0 34px rgba(255,170,40,0.45))';
+    const kk = eo(p(u, 0.6, 1.0)); $('s5kick').style.opacity = kk; $('s5kick').style.letterSpacing = `${lerp(0.7, 0.3, kk)}em`;
+    S5W.forEach((w, i) => {
+      const a = eb(p(u, 0.7 + i * 0.13, 1.05 + i * 0.13));
+      w.style.opacity = cl(a * 2); w.style.transform = `translateY(${(1 - a) * 70}px) scale(${lerp(1.6, 1, a)})`;
+    });
+    $('s5title').style.filter = 'drop-shadow(0 2px 0 rgba(0,0,0,0.35)) drop-shadow(0 8px 26px rgba(0,0,0,0.55))';
+    const c = eb(p(u, 1.5, 1.9));
+    const bob = Math.sin(u * 3.2) * 6;
+    $('s5cta').style.opacity = cl(c * 2);
+    $('s5cta').style.transform = `translateY(${(1 - c) * 120 + bob}px) scale(${lerp(0.6, 1, c) * (1 + 0.025 * Math.sin(u * 6.4))})`;
+    CTA.halo.style.opacity = 0.6 + 0.4 * Math.sin(u * 6.4);
+    CTA.sweep.style.left = `${-260 + (((u - 1.7) % 1.5 + 1.5) % 1.5) / 1.5 * 1400}px`;
+    SPARK.forEach(s => { const k = p(u, 1.6 + s.d, 2.3 + s.d); s.e.style.opacity = k > 0 && k < 1 ? Math.sin(k * Math.PI) : 0; s.e.style.transform = `scale(${0.3 + Math.sin(k * Math.PI)}) rotate(${k * 90}deg)`; });
+    const ur = eo(p(u, 2.0, 2.4));
+    $('s5url').style.opacity = ur; $('s5url').style.transform = `translateY(${(1 - ur) * 30}px)`;
+    $('s5meta').style.opacity = eo(p(u, 2.3, 2.7));
+  }
+
+  // ===== S6: WANTED — YOU (freeze-frame outro) =====
+  const u6 = t - T.s6[0];
+  if (u6 >= 0) {
+    const fz = eo(p(u6, 0, 0.3));
+    $('world').style.filter = `sepia(${fz * 0.85}) saturate(${lerp(1, 0.7, fz)}) brightness(${lerp(1, 0.28, fz)}) blur(${fz * 6}px)`;
+    show('s6', true);
+    ['s5cta', 's5url', 's5meta', 's5title', 's5kick'].forEach(id => { $(id).style.opacity = 1 - fz; });
+    const drop = p(u6, 0, 0.42);                       // accelerating fall, like WantedPoster
+    const y = (1 - drop * drop) * -1500;
+    const settle = u6 > 0.42 ? Math.sin((u6 - 0.42) * 22) * 14 * Math.exp(-(u6 - 0.42) * 7) : 0;
+    $('poster').style.transform = `translateY(${y + settle}px) rotate(${(1 - drop) * -6 + Math.sin(u6 * 1.6) * 0.8}deg)`;
+    if (u6 > 0.42 && u6 < 0.85) camShake += 22 * (1 - p(u6, 0.42, 0.85));
+    if (u6 > 0.42) flash = Math.max(flash, 0.45 * (1 - p(u6, 0.42, 0.6)));
+    POSTER_SWEEP.style.left = `${lerp(-200, 760, eo(p(u6, 0.7, 1.4)))}px`;
+    const tg = eo(p(u6, 0.65, 1.05));
+    $('s6tag').style.opacity = tg; $('s6tag').style.transform = `translateY(${(1 - tg) * 50}px)`;
+  } else {
+    $('world').style.filter = 'none';
+    show('s6', false);
+  }
+
+  // camera + flash
+  $('world').style.transform = `translate(${shake(t, camShake)}px, ${shake(t + 7.3, camShake)}px)`;
+  $('s6').style.transform = u6 > 0 ? $('world').style.transform : 'none';
+  $('flash').style.opacity = flash;
+  $('stage').style.opacity = Math.min(p(t, 0, 0.35), 1 - p(t, T.DUR - 0.3, T.DUR));
+};
+
+window.__ready = Promise.all([
+  document.fonts.ready,
+  ...[...document.images].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; })),
+]).then(() => Promise.all(['900 100px Cinzel', '700 100px Cinzel', '900 100px "Cinzel Decorative"', '100px Bungee', '800 20px Poppins', '600 20px Poppins'].map(f => document.fonts.load(f))))
+  .then(() => { PANELS.forEach(P => fitCrop(P.q.img, PW, PH)); window.render(0); return true; });
+</script>
+</body>
+</html>

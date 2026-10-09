@@ -1,0 +1,5 @@
+# audio sources / working files (the music is user-supplied and not committed)
+*.mp3
+*.wav
+audio/
+frames/
