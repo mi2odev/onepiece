@@ -109,7 +109,7 @@
   </div>
 
   <!-- ===== S6: "WANTED: YOU" outro (outside world so the freeze-tint doesn't touch it) ===== -->
-  <div id="s6" class="fill" style="visibility:hidden;">
+  <div id="s6" class="fill" style="display:none;">
     <div id="poster" class="abs" style="left:190px;top:150px;width:700px;"></div>
     <div id="s6tag" class="abs" style="left:0;right:0;top:1250px;text-align:center;">
       <div class="display fire poster-shadow" style="font-size:84px;line-height:1.05;">Find your bounty</div>
@@ -558,7 +558,7 @@ window.render = function (t) {
   if (u6 >= 0) {
     const fz = eo(p(u6, 0, 0.3));
     $('world').style.filter = `sepia(${fz * 0.85}) saturate(${lerp(1, 0.7, fz)}) brightness(${lerp(1, 0.28, fz)}) blur(${fz * 6}px)`;
-    show('s6', true);
+    $('s6').style.display = 'block';
     ['s5cta', 's5url', 's5meta', 's5title', 's5kick'].forEach(id => { $(id).style.opacity = 1 - fz; });
     const drop = p(u6, 0, 0.42);                       // accelerating fall, like WantedPoster
     const y = (1 - drop * drop) * -1500;
@@ -574,7 +574,7 @@ window.render = function (t) {
     $('s6tag').style.opacity = tg; $('s6tag').style.transform = `translateY(${(1 - tg) * 50}px)`;
   } else {
     $('world').style.filter = 'none';
-    show('s6', false);
+    $('s6').style.display = 'none';
   }
 
   // camera + flash
