@@ -4,7 +4,7 @@ A 30.6-second vertical (1080×1920, 30 fps) motion-graphics ad for the quiz: `ou
 
 It is styled after the site:
 - **Look:** the moonlit night-ocean background (sky gradient, moon and reflection, stars, island silhouettes, fog, gold/sea-foam/ember motes), the brand palette (ocean-deep, sunset, gold, pirate-red, sea-foam).
-- **Type:** Cinzel, Cinzel Decorative, Bungee and Poppins, with the `text-fire` and `text-gold-foil` gradients.
+- **Type:** Cinzel, Cinzel Decorative, Bungee and Poppins (plus Playfair Display for the outro poster's print type), with the `text-fire` and `text-gold-foil` gradients.
 - **Signature pieces:** the rising-sun glow behind the logo, the gold-framed wanted posters and the sunset-gradient "Begin Your Journey" button.
 - **Artwork:** the wanted-poster art in `public/images`.
 
@@ -15,7 +15,7 @@ It is styled after the site:
 | 8.4–19.7s | Character montage: 10 Straw Hats, one cut every 2 beats; each has a manga panel, its colour, name, title and quote, and the narrator says the name |
 | 19.7–24.8s | "24 QUESTIONS · 10 STRAW HAT CHARACTERS · 1 DESTINY", one hit per voice line on the beat, plus a scrolling strip of wanted posters |
 | 24.8–28.8s | Call to action on the second drop: poster collage, logo, "Discover Your Pirate Destiny", glowing "Begin Your Journey" button, onepiecemi2o.netlify.app |
-| 28.8–30.6s | Freeze-frame outro: a "WANTED — YOU — Bounty ???,???,???" poster drops in, with "Find your bounty" and the URL |
+| 28.8–30.6s | Freeze-frame outro: a real-looking wanted poster nailed up and fluttering. It shows a straw-hat silhouette, "YOU" and ฿ ???,???,???-, with "Find your bounty" and the URL |
 
 **Music:** the user-supplied One Piece OST "Overtaken" (`music.mp3`, not stored in the repo). It runs at 106 BPM. Its drops are at 16.48s and 34.59s, exactly 32 beats apart. Starting it at 9.78s puts the first drop on the "ARE YOU?" slam and the second on the call to action. The scene cuts in `timeline.json` all sit on that beat grid. Check that you have the rights to the music before running it as a paid ad; platforms may mute or block copyrighted tracks.
 
@@ -29,6 +29,7 @@ It is styled after the site:
 - `timeline.json`: scene timings, on the music's beat grid.
 - `render.mjs`: renders frames or stills with Playwright.
 - `split_vo.py`: splits the narration take into clips.
+- `make_poster.py`: builds `assets/wanted-blank.jpg` for the outro. It takes the site's Robin poster and erases the name and bounty digits, refilling them with the poster's own paper texture. The paper, "WANTED", brackets, Berry sign, fine print and MARINE stay; `ad.html` overprints the photo, "YOU" and the bounty in poster ink.
 - `sfx.py`: synthesizes the sound effects.
 - `mix.py`: builds the soundtrack: places the voice clips and effects, ducks the music under the voice (sidechain, with the voice track padded to the full length), low-passes the music during the hook, and runs a two-pass loudnorm to −14 LUFS.
 - `fonts/`, `fonts.css`: local copies of the site fonts, so rendering works offline.
@@ -37,6 +38,9 @@ It is styled after the site:
 
 ```sh
 cd promo
+# 0. outro poster paper (only if public/images/robin.jpg changes)
+python3 make_poster.py
+
 # 1. audio: put music.mp3 + narration.mp3 (+ optional rumble_el.mp3) in <audio_dir>
 python3 split_vo.py <audio_dir>/narration.mp3 <audio_dir>
 python3 sfx.py <audio_dir>
@@ -50,6 +54,6 @@ for w in 0 1 2 3; do node render.mjs frames <frames_dir> 30 $w 4 & done; wait
 
 # 4. encode
 ffmpeg -framerate 30 -i <frames_dir>/f%05d.jpg -i <audio_dir>/mix.wav \
-  -c:v libx264 -preset slow -crf 20 -pix_fmt yuv420p -c:a aac -b:a 192k \
+  -c:v libx264 -preset slow -crf 22 -pix_fmt yuv420p -c:a aac -b:a 192k \
   -shortest -movflags +faststart out/onepiece-quiz-ad.mp4
 ```
