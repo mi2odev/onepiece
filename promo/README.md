@@ -6,7 +6,7 @@ It is styled after the site:
 - **Look:** the moonlit night-ocean background (sky gradient, moon and reflection, stars, island silhouettes, fog, gold/sea-foam/ember motes), the brand palette (ocean-deep, sunset, gold, pirate-red, sea-foam).
 - **Type:** Cinzel, Cinzel Decorative, Bungee and Poppins (plus Playfair Display for the outro poster's print type), with the `text-fire` and `text-gold-foil` gradients.
 - **Signature pieces:** the rising-sun glow behind the logo, the gold-framed wanted posters and the sunset-gradient "Begin Your Journey" button.
-- **Artwork:** the wanted-poster art in `public/images`.
+- **Artwork:** the montage uses one cute picture of each Straw Hat from the Mugiwara image dataset ([AlissonRP/OnePiece-img-Classification](https://github.com/AlissonRP/OnePiece-img-Classification), `data.zip`), cropped by `prep_montage.py` into `assets/montage/`. The stats strip, CTA collage and outro use the wanted-poster art in `public/images`.
 
 | Time | Scene |
 | --- | --- |
@@ -29,6 +29,7 @@ It is styled after the site:
 - `timeline.json`: scene timings, on the music's beat grid.
 - `render.mjs`: renders frames or stills with Playwright.
 - `split_vo.py`: splits the narration take into clips.
+- `prep_montage.py`: crops the montage pictures into `assets/montage/` (faces framed, watermarks and credit bars cropped out, small sources upscaled).
 - `make_poster.py`: builds `assets/wanted-blank.jpg` for the outro. It takes the site's Robin poster and erases the name and bounty digits, refilling them with the poster's own paper texture. The paper, "WANTED", brackets, Berry sign, fine print and MARINE stay; `ad.html` overprints the photo, "YOU" and the bounty in poster ink.
 - `sfx.py`: synthesizes the sound effects.
 - `mix.py`: builds the soundtrack: places the voice clips and effects, ducks the music under the voice (sidechain, with the voice track padded to the full length), low-passes the music during the hook, and runs a two-pass loudnorm to −14 LUFS.
@@ -38,7 +39,10 @@ It is styled after the site:
 
 ```sh
 cd promo
-# 0. outro poster paper (only if public/images/robin.jpg changes)
+# 0a. montage pictures (from the dataset's data/ folder)
+python3 prep_montage.py <dataset>/data
+
+# 0b. outro poster paper (only if public/images/robin.jpg changes)
 python3 make_poster.py
 
 # 1. audio: put music.mp3 + narration.mp3 (+ optional rumble_el.mp3) in <audio_dir>
